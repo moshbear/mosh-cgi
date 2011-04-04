@@ -1,0 +1,16 @@
+#!/bin/bash
+# mk-hdrs - composite header file generator
+# (C) 2011 Andrey Vul
+# 2011-03-31 v1 - Initial version
+#
+# Generator for subdir header files to reduce the amount of #include <cgi/....h> lines
+# needed.
+FILENAME="$1";shift
+DIRNAME="$(echo $FILENAME|sed -re 's/\.[Hh]+[PpXx]*$//')"
+echo "#ifndef _CGI_${DIRNAME}_H_" > "$FILENAME"
+echo "#define _CGI_${DIRNAME}_H_" >> "$FILENAME"
+for hdr in $(<"$DIRNAME/HEADERS"); do
+	echo "#include <cgi/$DIRNAME/$hdr>" >> "$FILENAME"
+done
+echo "#endif /* ! _CGI_${DIRNAME}_H_ */" >> "$FILENAME"
+
