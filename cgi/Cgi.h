@@ -38,13 +38,14 @@
  */
 
 #include <string>
+#include <vector>
 #include <boost/optional.hpp>
 #include <boost/ref.hpp>
 
+#include <cgi/utils/algo.h>
 #include <cgi/utils/Search_AutoRange.h>
-#include <cgi/utils/StringUtils.h>
+#include <cgi/utils/String.h>
 #include <fastcgi++/http.hpp>
-#include <cgi/Types.h>
 #include <cgi/config.h>
 #include <cgi/form/Entry.h>
 #include <cgi/form/File.h>
@@ -82,8 +83,11 @@ namespace cgi {
  * }
  * \endcode
  */
-template <class charT>
+template <class charT, class charvecT = std::vector<char> >
 class Cgi {
+private:
+	typedef typename Cgi<charT, charvecT> this_type;
+	typedef typename Fastcgipp::Http::Session<charT, charvecT, this_type> fcgi_type;
 public:
 
 	// ============================================================
@@ -100,7 +104,7 @@ public:
 	 * variables will be used.
 	 * \param input A CgiInput object to use for reading input
 	 */
-	Cgi(Fastcgipp::Http::Session<charT> const& fcgiHttpSession)
+	Cgi(fcgi_type const& fcgiHttpSession)
 	: environment(fcgiHttpSession) {
 		parseQuery(environment.envData()["QUERY_STRING"]);
 		if (environment.postData().size() > 0)
@@ -127,7 +131,7 @@ public:
 	 * \param cgi The Cgicc to compare to this one.
 	 * \return \c true if the two Cgiccs are equal, \c false otherwise.
 	 */
-	inline bool operator==(const Cgi<charT>&  cgi) const {
+	inline bool operator==(const this_type&  cgi) const {
 		return &this->environment == &cgi.environment;
 	}
 	/*!
@@ -136,8 +140,8 @@ public:
 	 * Cgiccs are equal if they represent the same environment.
 	 * \param cgi The Cgicc to compare to this one.
 	 * \return \c false if the two Cgiccs are equal, \c true otherwise.
-	 */ inline bool
-	operator!=(const Cgi<charT>& cgi) const {
+	 */
+	inline bool operator!=(const this_type& cgi) const {
 		return !operator==(cgi);
 	}
 	//@}
@@ -151,36 +155,23 @@ public:
 	//@{
 
 	/*!
-	 * \brief Get the date on which this library was compiled.
-	 *
-	 This is a string of the form <TT>mmm dd yyyy</TT>.
-	 * \return The compile date
-	 */
-	const char* getCompileDate() const;
-
-	/*!
-	 * \brief Get the time at which this library was compiled.
-	 *
-	 * This is a string of the form \c hh:mm:ss in 24-hour time.
-	 * \return The compile time
-	 */
-	const char* getCompileTime() const;
-
-	/*!
 	 * \brief Get the version number of cgi.
 	 *
 	 * The version number is a string of the form \c #.#.
 	 * \return The version number
 	 */
-	const char* getVersion() const;
-
+	static const char* getVersion() {
+		return VERSION;
+	}
 	/*!
 	 * \brief Get the platform for which Cgicc was configured.
 	 *
 	 * The host is a string of the form \c processor-manufacturer-os
 	 * return The host triplet.
 	 */
-	const char* getHost() const;
+	static const char* getHost() {
+		return HOST;
+	}
 	//@}
 
 	// ============================================================
@@ -245,24 +236,10 @@ public:
 		return entries;
 	}
 	//@}
-	// ============================================================
-	/*! \name Save and Restore */
-	//@{
-	/*!
-	*\brief Save the current CGI environment to a file.
-	* A wrapper for Fastcgipp::Http::Session::dumpToFile.
-	* Use the associated program to parse to human-readable values.
-	* \param filename The name of the file to which to save.
-	*/
-	inline void dumpEnvToFile(const std::string&  filename)	const {
-		environment.dumpToFile(filename);
-	}
-
-	//@}
 	//! \brief The form entries
-	map<std::basic_string<charT>, form::Entry<charT> >::mm_type entries;
+	std::multimap<std::basic_string<charT>, form::Entry<charT> > entries;
 	//! \brief The form files
-	map<std::basic_string<charT>, form:::File<charT> >::type files;
+	std::map<std::basic_string<charT>, form:::File<charT, charvecT> > files;
 private:
 	Environment<charT> environment;
 
@@ -339,10 +316,10 @@ private:
 	static form::MultipartHeader<charT> parseHeader(InputIterator _Begin, InputIterator _End) {
 		std::string data(_Begin, _End);
 		return form::MultipartHeader<charT>(
-			common::StringUtils::extractBetween<charT>(data, "Content-Disposition: ", ";"),
-			common::StringUtils::extractBetween<charT>(data, "name=\"", "\""),
-			form::utils::urldecode<charT>(common::StringUtils::extractBetween<char>(data, "filename=\"", "\"")),
-			common::StringUtils::extractBetween<charT>(data, "Content-Type: ", "\r\n\r\n")
+			string::extractor<charT>::extractBetween(data, "Content-Disposition: ", ";"),
+			string::extractor<charT>::extractBetween(data, "name=\"", "\""),
+			form::utils::urldecode<charT>(string::extractor<char>::extractBetween(data, "filename=\"", "\"")),
+			string::extractor<charT>::extractBetween(data, "Content-Type: ", "\r\n\r\n")
 		);
 	}
 	template <class InputIterator>
@@ -359,7 +336,7 @@ private:
 			entries.insert(std::make_pair(head.name, form::Entry<charT>(name, std::basic_string<charT>(_DataBegin, _End))));
 		// a file
 		else
-			files.insert(make_pair(head.name, form::File<charT>(head.name, head.value, head.contentType, value)));
+			files.insert(make_pair(head.name, form::File<charT, charvecT>(head.name, head.value, head.contentType, value)));
 	}
 #undef getEntry
 };

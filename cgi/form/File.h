@@ -1,7 +1,5 @@
 /* -*-mode:c++; c-file-style: "gnu";-*- */
 /*
- *  $Id: File.h,v 1.11 2007/07/02 18:48:18 sebdiaz Exp $
- *
  *  Copyright (C) 1996 - 2004 Stephen F. Booth <sbooth@gnu.org>
  *                       2007 Sebastien DIAZ <sebastien.diaz@gmail.com>
  *  Part of the GNU cgi library, http://www.gnu.org/software/cgi
@@ -38,6 +36,9 @@
 #include <vector>
 #include <boost/shared_ptr.hpp>
 #include <cgi/common/Kv.h>
+#include <cgi/form/vec-ident.h>
+#include <cgi/utils/String.h>
+#include <util/STL_Foreach.h>
 
 namespace cgi { namespace form {
 
@@ -58,10 +59,11 @@ namespace cgi { namespace form {
  \endverbatim
  * \sa FormEntry
  */
-template <class charT>
+template <class charT, typename charvecT = std::vector<char> >
 struct File : public cgi::common::KV<charT> {
 private:
 	typedef cgi::common::KV<charT> KV;
+	typedef typename charvecT cv;
 public:
 	/*! \name Constructors and Destructor */
 	//@{
@@ -86,7 +88,7 @@ public:
 	File(const std::basic_string<charT>& name,
 	             const std::basic_string<charT>& filename,
 	             const std::basic_string<charT>& dataType_,
-		     boost::shared_ptr<std::vector<char> >& data_)
+		     boost::shared_ptr<cv>& data_)
 	: KV(name, filename), dataType(dataType_), data(data_) {
 		if (dataType.empty())
 			dataType = "text/plain";
@@ -98,7 +100,7 @@ public:
 	 * Sets the filename, datatype, and data to those of \c file
 	 * @param file The File to copy.
 	 */
-	inline File(const File<charT>& file)
+	inline File(const File<charT, cv>& file)
 	: KV(file.name, file.value) {
 		operator=(file);
 	}
@@ -124,7 +126,7 @@ public:
 	 * @param file The File to compare to this one.
 	 * @return \c true if the two Files are equal, \c false otherwise.
 	 */
-	bool operator==(const File<charT>& file) const {
+	bool operator==(const File<charT, cv>& file) const {
 		return (this==&file)||
 			(this->KV::operator==(file)
 			&& cgi::string::equality(dataType, file.datatype));
@@ -136,7 +138,7 @@ public:
 	 * \param file The File to compare to this one.
 	 * \return \c false if the two Files are equal, \c true otherwise.
 	 */
-	inline bool operator!=(const File<charT>& file) const {
+	inline bool operator!=(const File<charT, cv>& file) const {
 		return !operator==(file);
 	}
 	/*!
@@ -146,8 +148,8 @@ public:
 	 * \param file The File to copy.
 	 * \return A reference to this.
 	 */
-	File<charT>&
-	operator=(const File<charT>& file) {
+	File<charT, cv>&
+	operator=(const File<charT, cv>& file) {
 		if (&file == this)
 			return *this;
 		this->KV::operator=(file);
@@ -172,8 +174,12 @@ public:
 	 */
 	void
 	writeToStream(std::basic_ostream<charT>& out) const {
-		if (data.get())
-			out.write(&data.get()->at(0), data->size());
+		if (data.get()) {
+			if (ident<cv>::has_bulk_iterator())
+				out.write(&data.get()->at(0), data->size());
+			else
+				FOREACH(auto const& v, *data.get(), out << v;);
+		}
 	}
 	
 	/*!
@@ -189,7 +195,7 @@ public:
 	}
 	//@}
 	std::basic_string<charT> dataType;
-	boost::shared_ptr<std::vector<char> > data;
+	boost::shared_ptr<cv> data;
 
 };
 

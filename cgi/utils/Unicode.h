@@ -28,7 +28,6 @@
  */
 
 #include <string>
-#include <util/Strcasecmp.h>
 
 namespace cgi { namespace unicode {
 

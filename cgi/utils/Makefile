@@ -13,7 +13,8 @@
 # \1 == SRCS => sources
 # \1 == HDRS => headers
 # \1 == UNIT => lib name
-# \1 == ifHDRS => expands to '$(addprefix out/, $(addsuffix -stamp, $(HEADERS)))' if HDRS is non-empty
+# \1 == UNITL => lib name with leading '-' if non-empty
+# \1 == ifHDRS => expands to '../utils.h' if HDRS is non-empty
 # \1 == ifSRCS => epands to '$(LIBS)' if SRCS is non-empty
 
 CC = gcc -Wall -Wextra
@@ -26,25 +27,29 @@ CXXFLAGS =
 endif
 CCINCLUDE = 
 ifndef NO_INHERIT_CCINCLUDE
-CXXINCLUDE = $(CCINCLUDE) -I. -I.. -I../..
+CXXINCLUDE = $(CCINCLUDE) -I. -I.. -I../.. -I../../stxxl-1.3.1/include/
 else
-CXXINCLUDE = -I. -I.. -I../..
+CXXINCLUDE = -I. -I.. -I../.. -I../../stxxl-1.3.1/include/
 endif
 AR = ar
 RANLIB = ranlib
+MK_HDRS = "/home/andrey/code/cgi-mosh"/mk-headers
+SOURCES = Unicode.cpp 
+HEADERS = algo.h Search_AutoRange.h String.h Unicode.h 
 
-SOURCES = String.cpp Unicode.cpp 
-HEADERS = Search_AutoRange.h String.h Unicode.h 
+LIBS = $(addprefix libcgi-utils, .so .a)
 
-LIBS = $(addprefix libcgi-utils/, .so .a)
+all: ../utils.h $(LIBS)
 
-all: $(addprefix out/, $(addsuffix -stamp, $(HEADERS))) $(LIBS)
+../utils.h: $(addprefix out/, $(addsuffix -stamp, $(HEADERS)))
+	$(MK_HDRS) $@
 
-libcgi-utils/.a: $(addsuffix -static.o, $(addprefix out/, $(basename $(SOURCES)))) | out
+
+libcgi-utils.a: $(addsuffix -static.o, $(addprefix out/, $(basename $(SOURCES)))) | out
 	$(AR) rc $@ $^
 	$(RANLIB) $@
 
-libcgi-utils/.so: $(addsuffix -shared.o, $(addprefix out/, $(basename $(SOURCES)))) | out
+libcgi-utils.so: $(addsuffix -shared.o, $(addprefix out/, $(basename $(SOURCES)))) | out
 	$(CXX) $(CXXFLAGS) -shared -fPIC -o $@ $^
 
 out/%-static.o: %.cpp %.h | out

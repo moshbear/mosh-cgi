@@ -27,10 +27,9 @@
  * String utilities used internally by the cgi library.
  */
 
-#include <new>
 #include <string>
-#include <iostream>
-#include <algorithm>
+#include <utility>
+#include <cgi/utils/algo.h>
 #include <cgi/utils/Unicode.h>
 #include <cgi/utils/string/CaseInsensitiveComparator.h>
 
@@ -65,52 +64,72 @@ bool equality(const std::basic_string<charT>& ss1, const std::basic_string<charT
 	return std::equal(ss1.begin(), ss1.begin() + n, ss2.begin(), CaseInsensitiveComparator<charT>());
 }
 
-template <class charT, class InputIterator>
-std::basic_string<charT> extractBetween(InputIterator _Begin, InputIterator _End, const std::string& sep1, const std::string& sep2);
-template <class InputIterator> std::string extractBetween<char, InputIterator>(InputIterator _Begin, InputIterator _End, const std::string& sep1, const std::string& sep2) {
-	std::string result;
-	InputIterator _Data_Start = std::search
-template <class InputIterator> inline std::wstring extractBetween<wchar_t,InputIterator>(InputIterator _Begin, InputIterator _End, const std::string sep1, const std::string& sep2) {
-	return unicode::utfIn<wchar_t>(extractBetween<char>(_Begin, _End, sep1, sep2));
-}
-
 /*!
- * \brief Extract a substring contained within two separators.
- *
- * For example, after the call
- * \code
- * std::string data = "11foo22";
- * std::string res;
- * res = extractBetween(data, "11", "22");
- * \endcode
- * \c res will be "foo".
- * \tparam charT character type. If \c wchar_t, then the input is converted to Unicode.
- * \param data The data to search.
- * \param separator1 The first logical separator.
- * \param separator2 The second logical separator.
- * \return The substring between the separators.
+ * Template class to partially specialize extractBetween for different char types.
+ * \tparam charT output char type
  */
 template <class charT>
-std::basic_string<charT> extractBetween(const std::string& data, const std::string& separator1, const std::string& separator2);
-template<> std::string extractBetween<char>(const std::string&, const std::string&, const std::string&);
-template<> inline std::wstring extractBetween<wchar_t>(const std::string& data, const std::string& sep1, const std::string& sep2) {
-	return unicode::utfIn<wchar_t>(extractBetween<char>(data, sep1, sep2));
-}
+struct extractor {
+	
+	/*!
+	 * \brief Extract a substring contained within two separators (iterator version).
+	 *
+	 * For example, after the call
+	 * \code
+	 * std::string data = "11foo22";
+	 * std::string res;
+	 * res = extractor<charT>::extractBetween(data.begin(), data.end(), "11", "22");
+	 * \endcode
+	 * \c res will be "foo".
+	 * \param _Begin Iterator to beginning of data.
+	 * \param _End Iterator to end of data.
+	 * \param sep1 The first logical separator.
+	 * \param sep2 The second logical separator.
+	 * \return The substring between the separators.
+	 */
+	template <class InputIterator>
+	static std::basic_string<charT> extractBetween(InputIterator _Begin, InputIterator _End,
+							const std::string& sep1, const std::string& sep2);
+	template <class InputIterator>
+	static inline std::basic_string<charT> extractBetween(InputIterator _Begin, InputIterator _End,
+								const std::string& sep) {
+		return extractBetween(_Begin, _End, sep, sep);
+	}
+	static inline std::basic_string<charT> extractBetween(const std::string& data,
+								const std::string& sep1, const std::string& sep2) {
+		return extractBetween(data.begin(), data.end(), sep1, sep2);
+	}
+	static inline std::basic_string<charT> extractBetween(const std::string& data,
+							const std::string& sep) {
+		return extractBetween(data, sep, sep);
+	}
+};
 
-/*!
- * \brief Extract a substring contained between a separator.
- *
- * This function is used internally to decode \c multipart/form-data
- * \tparam charT character type. If \c wchar_t, then the input is converted to Unicode.
- * \param data The data to search.
- * \param separator The separator.
- * \return The substring between the separator.
- */
-template <class charT>
-inline std::basic_string<charT> extractBetween(const std::string& datas, const std::string& separators)
-{
-	return extractBetween<charT>(datas, separators, separators);
-}
+// specialization for [charT = char]
+// base case
+template<> 
+struct extractor<char> {
+	template <class InputIterator>
+	static std::string extractBetween(InputIterator _Begin, InputIterator _End, const std::string& sep1, const std::string& sep2) {
+		InputIterator __Start = utils::searcher<InputIterator>::search(_Begin, _End, sep1.begin(), sep1.end());
+		if (__Start == _End)
+			return std::string();
+		for (size_t i = 0; i < sep1.size(); ++i, ++__Start);
+		InputIterator __End = utils::searcher<InputIterator>::search(__Start, _End, sep2.begin(), sep2.end());
+		if (__End == _End)
+			return std::string();
+		return std::string(__Start, __End);
+	}
+};
+
+// specialization for [charT = wchar_t]
+template<>
+struct extractor<wchar_t> {
+	template <class InputIterator>
+	static inline std::wstring extractBetween(InputIterator _Begin, InputIterator _End, const std::string& sep1, const std::string& sep2) {
+		return unicode::utfIn<wchar_t>(extractor<char>::extractBetween(_Begin, _End, sep1, sep2));
+	}
+};
 
 } } // namespace string // namespace cgi
 

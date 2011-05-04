@@ -13,7 +13,7 @@
 # \1 == SRCS => sources
 # \1 == HDRS => headers
 # \1 == UNIT => lib name
-# \1 == ifHDRS => expands to '$(addprefix out/, $(addsuffix -stamp, $(HEADERS)))' if HDRS is non-empty
+# \1 == ifHDRS => expands to '../-form.h' if HDRS is non-empty
 # \1 == ifSRCS => epands to '$(LIBS)' if SRCS is non-empty
 
 CC = gcc -Wall -Wextra
@@ -32,19 +32,23 @@ CXXINCLUDE = -I. -I.. -I../..
 endif
 AR = ar
 RANLIB = ranlib
-
+MK_HDRS = /mk-hdrs
 SOURCES = MultipartHeader.cpp Url.cpp 
-HEADERS = Entry.h File.h MultipartHeader.h Url.h 
+HEADERS = Entry.h File.h MultipartHeader.h Url.h vec-ident.h 
 
-LIBS = $(addprefix libcgi-form/, .so .a)
+LIBS = $(addprefix libcgi-form, .so .a)
 
-all: $(addprefix out/, $(addsuffix -stamp, $(HEADERS))) $(LIBS)
+all: ../-form.h $(LIBS)
 
-libcgi-form/.a: $(addsuffix -static.o, $(addprefix out/, $(basename $(SOURCES)))) | out
+../-form.h: $(addprefix out/, $(addsuffix -stamp, $(HEADERS)))
+	$(MK_HDRS) $@
+
+
+libcgi-form.a: $(addsuffix -static.o, $(addprefix out/, $(basename $(SOURCES)))) | out
 	$(AR) rc $@ $^
 	$(RANLIB) $@
 
-libcgi-form/.so: $(addsuffix -shared.o, $(addprefix out/, $(basename $(SOURCES)))) | out
+libcgi-form.so: $(addsuffix -shared.o, $(addprefix out/, $(basename $(SOURCES)))) | out
 	$(CXX) $(CXXFLAGS) -shared -fPIC -o $@ $^
 
 out/%-static.o: %.cpp %.h | out

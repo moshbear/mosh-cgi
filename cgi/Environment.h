@@ -56,37 +56,31 @@ namespace cgi {
  * contains the \c GET or \c POST data along with all environment variables
  * set by the HTTP server specified in the CGI specification.
  */
-template <class charT>
+template <class charT, class charvecT = std::vector<char> >
 class Environment : private boost::noncopyable {
+	friend class Cgi<charT, charvecT>;
+	typedef typename Cgi<charT, charvecT> cgi_type;
+	typedef typename Environment<charT, charvecT> this_type;
+	typedef typename Fastcgipp::Http::Session<charT, charvecT, cgi_type> fcgi_type;
 public:
-
-	friend class Cgi<charT>;
-
 	// ============================================================
 
 	/*! \name Constructors and Destructor */
 	//@{
 
 	/*!
-	 * \brief Read in the CGI environment passed to the CGI application
-	 * by the server
+	 * \brief Attach an environment to the \c Fastcgi++ intstance
 	 *
-	 * This function is not usually called directly; instead, an object of type
-	 * CgiEnvironment is retrieved by calling the \c getEnvironment() method
-	 * on Cgicc.
-	 * If you are using %cgi with FastCGI, you will need to pass
-	 * a \c CgiInput subclass that %cgi will use to read input.  If
-	 * \c input is omitted, standard input and environment
-	 * variables will be used.
-	 * \param input A CgiInput object to use for reading input
-	 * \see Cgicc::getEnvironment
+	 * This function is not supposed to be called directly; initialization is
+	 * internally performed by \c Cgi<charT, charvecT>.
+	 * \param fcgiBuf_ the \c Fastcgi++ http session buffer to attach to
 	 */
-	Environment(Fastcgipp::Http::Session<charT>& const fcgiBuf_)
+	Environment(fcgi_type const& fcgiBuf_)
 	: fcgiBuf(fcgiBuf_) {
 		readEnvironmentVariables();
 		parseCookies();
 	}
-	Environment(Environment<charT>&& env)
+	Environment(this_type&& env)
 	: Environment(env.fcgiBuf) {
 	}
 	/*!
@@ -103,13 +97,13 @@ public:
 	//@{
 
 	/*!
-	 * \brief Compare two CgiEnvironments for equality.
+	 * \brief Compare two Environments for equality.
 	 *
 	 * CgiEnvironments are equal if they have the same environment variables.
 	 * \param env The CgiEnvironment to compare to this one.
 	 * \return \c true if the two CgiEnvironments are equal, \c false otherwise.
 	 */
-	bool operator==(const Environment<charT>& env) const {
+	bool operator==(const this_type& env) const {
 		bool result = (contentLength == env.contentLength);
 		result &= (usingHTTPS == env.usingHTTPS);
 		result &= (cookie == env.cookie);
@@ -124,7 +118,7 @@ public:
 	 * \param env The CgiEnvironment to compare to this one.
 	 * \return \c false if the two CgiEnvironments are equal, \c true otherwise.
 	 */
-	inline bool operator!=(const Environment<charT>&  env) const {
+	inline bool operator!=(const this_type&  env) const {
 		return !operator==(env);
 	}
 	//@}
@@ -132,8 +126,8 @@ public:
 	// ============================================================
 
 	//! \brief Reference to Fastcgipp FastCGI buffer
-	Fastcgipp::Http::Session<charT>& fcgiBuf; 
-	std::vector<char>& postData() { return boost::ref(fcgiBuf.postBuffer); }
+	fcgi_type& fcgiBuf; 
+	charvecT& postData() { return boost::ref(fcgiBuf.postBuffer); }
 	std::map<std::string, std::string>& envData() { return boost::ref(fcgiBuf.environment); }
 
 	//! Length of POST data
@@ -143,10 +137,6 @@ public:
 	
 	std::string cookie;
 	std::multimap<std::basic_string<charT>, cgi::http::Cookie<charT> > cookies;
-protected:
-	inline void dumpToFile(std::string const& filename) const {
-		fcgiBuf.dumpToFile(filename);
-	}
 private:
 	Environment();
 
