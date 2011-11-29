@@ -1,26 +1,15 @@
 File: README
-V: v0.2 2011-05-06 m0shbear
+V: v0.3 2011-11-30 m0shbear
 ==
 
 M0shbear's fork of GNU cgicc.
 
 Features added:
-* FastCGI support via fastcgi++
-* Unicode/UTF-8 support via templates
-
-Features modified:
-* Use of operator[] for form data. 2-arg overload for returning list of references for multi-value keys
-* cgi::CgiInput replaced with accessors to fastcgi++ data
-* replaced std::vector with std::list where needed (warn: list of non-POD data; you cannot use BigList with it)
-* replaced std::string with shared_ptr to BigVector<char> for file upload 
-    todo: find a way to extract filename from stxxl so that simple rename can be done, lowering space complexity by 2x
+* Templated Unicode support
 
 Features removed:
-* cgi::CgiInput
-* env vars; use cgi::Environment<T>::operator[](std::string const&) if you want the functionality
-* data dumper: moved to fastcgi++
-* data deserialization: let fastcgi++ do the session-specific work
+* CGI input handling (use mosh/fcgi for that)
+* redundancies in control flow (constructs like `if ((bool_val) == true)' need to be destroyed with fire)
 * #ifdef __GNUC__ - removing gnu hints to cleanup code
 * most of the documentation (TODO: rewrite)
-* autoconf, automake, configure: redundant because the master Makefile already does the config.h generation
 * examples: don't need them
