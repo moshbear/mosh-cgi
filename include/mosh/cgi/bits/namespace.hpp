@@ -25,6 +25,6 @@
 #define MOSH_CGI_BEGIN namespace m0sh { namespace cgi {
 #define MOSH_CGI_END } }
 
-#include <mosh/fcgi/bits/config.h>
+#include <mosh/cgi/bits/config.h>
 
 #endif

@@ -1,0 +1,23 @@
+#Automatically generated list of header files by mk-headerlist.sh, v0
+HEADER_LIST = \
+mosh/cgi/bits/ci_strcomp.hpp \
+mosh/cgi/bits/namespace.hpp \
+mosh/cgi/bits/print.hpp \
+mosh/cgi/bits/singleton.hpp \
+mosh/cgi/bits/streamable.hpp \
+mosh/cgi/html/classes.hpp \
+mosh/cgi/html/doctype/doctype.hpp \
+mosh/cgi/html/doctype_classes.hpp \
+mosh/cgi/html/element/atomic.hpp \
+mosh/cgi/html/element/boolean.hpp \
+mosh/cgi/html/element/element.hpp \
+mosh/cgi/http/content_header_classes.hpp \
+mosh/cgi/http/cookie.hpp \
+mosh/cgi/http/header/content_header.hpp \
+mosh/cgi/http/header/header.hpp \
+mosh/cgi/http/header/redirect_header.hpp \
+mosh/cgi/http/header/response_header.hpp \
+mosh/cgi/http/header/status_header.hpp \
+mosh/cgi/xml/declaration.hpp \
+mosh/cgi/xml/pi.hpp
+
