@@ -41,33 +41,12 @@ namespace element {
 /*! @name Attribute taggers
  */
 //@{
-/*! @brief Attribute tagger
- * When creating inline attributes, enclose the key with Attr() and use << to pipe in the value
- * @code
- * 	{ "foo", "bar" } -> Attr("foo")<<"bar"
- * @endcode
- */
+//Q Attribute tagger. Use it to create std::pair<T1,T2>s representing element attributes.
 template <typename charT>
-class Attr {	
-public:
-	//! Create an Attr with a given key
-	Attr(const std::string& _str)
-	: str(_str)
-	{ }
-	//! Destructor
-	virtual ~Attr() { }
-	//! Transform this Attr into a {K,V} pair
-	std::pair<std::string, std::basic_string<charT>>
-		operator<<(std::basic_string<charT>& str2) const
-	{
-		return std::make_pair(str, str2);
-	}
-private:
-	Attr() = delete; // prevent default construction
-	//! Key string
-	std::string str;
-	
-};
+std::pair<std::string, std::basic_string<charT>>
+Attr(const std::string& s1, const std::basic_string<charT>& s2) {
+	return std::make_pair(s1, s2);
+}
 
 /*! @brief Attribute list tagger
  * When creating inline attribute list, enclose the first pair with an Attr_list
