@@ -20,8 +20,25 @@
 #define MOSH_CGI_T_STRING_HPP
 
 #include <string>
-#include <boost/lexical_cast.hpp>
+#include <locale>
+#include <mosh/cgi/bits/namespace.hpp>
 
-#define T_STRING(t, s) boost::lexical_cast<std::basic_string<t> >(s)
+MOSH_CGI_BEGIN
 
+template <typename T>
+T wide_char(char ch) {
+	// It's a bit roundabout, but this is the only way to get the current locale
+	std::locale loc = std::locale::global(std::locale::classic());
+	std::locale::global(loc);
+	return std::use_facet<std::ctype<T>>(loc). widen(ch);
+}
+
+template <typename T>
+std::basic_string<T> wide_string(const std::string& s) {
+	std::basic_string<T> t(s.size(), 0);
+	for (size_t i = 0; i < s.size(); ++i)
+		t[i] = wide_char<T>(s[i]);
+}
+
+MOSH_CGI_END
 #endif
