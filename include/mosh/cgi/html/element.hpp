@@ -29,7 +29,6 @@
 #include <utility>
 #include <stdexcept>
 #include <mosh/cgi/bits/singleton.hpp>
-#include <mosh/cgi/bits/streamable.hpp>
 #include <mosh/cgi/bits/t_string.hpp>
 #include <mosh/cgi/bits/namespace.hpp>
 
@@ -142,12 +141,11 @@ private:
 
 //! An HTML element
 template <typename charT>
-class Element : public Streamable<charT> {
-	typedef Streamable<charT> base_type;
+class Element  {
 	typedef Element<charT> this_type;
 public:
 	//! Typedef for strings
-	typedef typename base_type::string_type string_type;
+	typedef typename std::basic_string<charT> string_type;
 	//! Typedef for attributes
 	typedef typename std::pair<std::string, string_type> attribute_type;
 	//! Typedef for attribute lists
