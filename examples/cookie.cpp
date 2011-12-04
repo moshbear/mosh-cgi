@@ -49,9 +49,7 @@ using namespace std;
 using namespace MOSH_CGI;
 
 // Print the form for this CGI
-std::string
-printForm()
-{
+string printForm() {
 	using namespace html::element;
 
 	return SElement["form"]({SP("method", "post"), SP("action", "foo")}, {

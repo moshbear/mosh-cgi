@@ -41,29 +41,29 @@ namespace element {
 //! Attribute tagger. Use it to create std::pair<T1,T2>s representing element attributes.
 template <typename charT>
 std::pair<std::string, std::basic_string<charT>>
-P(const std::string& s1, const std::basic_string<charT>& s2) {
-	return std::make_pair(s1, s2);
+P(std::string&& s1, std::basic_string<charT>&& s2) {
+	return std::make_pair(std:forward(s1), std::forward(s2));
 }
 
-std::pair<std::string, std::string> SP(const std::string& s1, const std::string& s2) {
+std::pair<std::string, std::string> SP(std::string&& s1, std::string&& s2) {
 	return P(s1, s2);
 }
 
-std::pair<std::string, std::wstring> WSP(const std::string& s1, const std::wstring& s2) {
+std::pair<std::string, std::wstring> WSP(std::string&& s1, std::wstring&& s2) {
 	return P(s1, s2);
 }
 
 //! An HTML element
 template <typename charT>
 class Element  {
-	typedef Element<charT> this_type;
+	typedef Element<charT> this;
 public:
 	//! Typedef for strings
-	typedef typename std::basic_string<charT> string_type;
+	typedef typename std::basic_string<charT> string;
 	//! Typedef for attributes
-	typedef typename std::pair<std::string, string_type> attribute_type;
+	typedef typename std::pair<std::string, string> attribute;
 	//! Typedef for attribute lists
-	typedef typename std::map<std::string, string_type> attrlist_type;
+	typedef typename std::map<std::string, string> attr_list;
  
 	//! Enumeration for encoding type
 	enum class Type {
@@ -94,7 +94,7 @@ public:
 	/*! @brief Add an attribute.
 	 *  @param[in] _a attribute
 	 */
-	Element& operator () (const attribute_type& _a) {
+	Element& operator () (const attribute& _a) {
 		attributes.insert(_a);
 		return *this;
 	}
@@ -102,7 +102,7 @@ public:
 	/*! @brief Add attribute(s).
 	 *  @param[in] _a-{} list of attributes
 	 */
-	Element& operator () (std::initializer_list<attribute_type> _a) {
+	Element& operator () (std::initializer_list<attribute> _a) {
 		for (const auto& at : _a)
 			attributes.insert(at);
 		return *this;
@@ -111,7 +111,7 @@ public:
 	/*! @brief Add a value.
 	 *  @param[in] _v value
 	 */
-	Element& operator () (const string_type& _v) {
+	Element& operator () (const string& _v) {
 		data += _v;
 		return *this;
 	}
@@ -119,8 +119,8 @@ public:
 	/*! @brief Add value(s).
 	 *  @param[in] _v {}-list of values
 	 */
-	Element& operator () (std::initializer_list<string_type> _v) {
-		for (const string_type& vv : _v)
+	Element& operator () (std::initializer_list<string> _v) {
+		for (const string& vv : _v)
 			data += vv;
 		return *this;
 	}
@@ -129,7 +129,7 @@ public:
 	 *  @param[in] _a attribute
 	 *  @param[in] _v value
 	 */
-	Element& operator () (const attribute_type& _a, const string_type& _v) {
+	Element& operator () (const attribute& _a, const string& _v) {
 		attributes.insert(_a);
 		data += _v;
 		return *this;
@@ -139,9 +139,9 @@ public:
 	 *  @param[in] _a attribute
 	 *  @param[in] _v {}-list of values
 	 */
-	Element& operator () (const attribute_type& _a, std::initializer_list<string_type> _v) {
+	Element& operator () (const attribute& _a, std::initializer_list<string> _v) {
 		attributes.insert(_a);
-		for (const string_type& vv : _v)
+		for (const string& vv : _v)
 			data += vv;
 		return *this;
 	}
@@ -150,7 +150,7 @@ public:
 	 *  @param[in] _a {}-list of attributes
 	 *  @param[in] _v value
 	 */
-	Element& operator () (std::initializer_list<attribute_type> _a, const string_type& _v) {
+	Element& operator () (std::initializer_list<attribute> _a, const string& _v) {
 		for (const auto& at : _a)
 			attributes.insert(at);
 		data += _v;
@@ -161,10 +161,10 @@ public:
 	 *  @param[in] _a {}-list of attributes
 	 *  @param[in] _v {}-list of values
 	 */
-	Element& operator () (std::initializer_list<attribute_type> _a, std::initializer_list<string_type> _v) {
+	Element& operator () (std::initializer_list<attribute> _a, std::initializer_list<string> _v) {
 		for (const auto& at : _a)
 			attributes.insert(at);
-		for (const string_type& vv : _v)
+		for (const string& vv : _v)
 			data += vv;
 		return *this;
 	}
@@ -172,7 +172,7 @@ public:
 	/*! @brief Add an attribute.
 	 *  @param[in] _a attribute
 	 */
-	Element& operator << (const attribute_type& _a) {
+	Element& operator << (const attribute& _a) {
 		attributes.insert(_a);
 		return *this;
 	}
@@ -180,7 +180,7 @@ public:
 	/*! @brief Add attribute(s).
 	 * @param[in] _a {}-list of attributes
 	 */
-	Element& operator << (std::initializer_list<attribute_type> _a) {
+	Element& operator << (std::initializer_list<attribute> _a) {
 		for (const auto& at : _a)
 			attributes.insert(at);
 		return *this;
@@ -189,7 +189,7 @@ public:
 	/*! @brief Add a value.
 	 * @param[in] _v value
 	 */
-	Element& operator << (const string_type& _v) {
+	Element& operator << (const string& _v) {
 		data += _v;
 		return *this;
 	}
@@ -197,7 +197,7 @@ public:
 	/*! @brief Add value(s).
 	 * @param[in] _v {}-list of values
 	 */
-	Element& operator << (std::initializer_list<string_type> _v) {
+	Element& operator << (std::initializer_list<string> _v) {
 		for (const auto& vv : _v)
 			attributes.insert(vv);
 		return *this;
@@ -209,7 +209,7 @@ public:
 	 *  Renders the element, with attributes and pre-rendered data.
 	 *  @warn No escaping is done.
 	 */
-	operator string_type() const {
+	operator string() const {
 		std::basic_stringstream<charT> s;
 		s << wide_char<charT>('<');
 		if (type == Type::comment) {
@@ -255,21 +255,13 @@ private:
 	 *  Unused for comment elements.
 	 *  @warning Is not propagated via operator ()
 	 */
-	attrlist_type attributes;
+	attr_list attributes;
 	/*! @brief Pre-rendered embedded data
 	 *  Unused for atomic elements.
 	 *  @warning Is not propagated via operator ()
 	 */
-	string_type data;
+	string data;
 	Element() = delete;
-	Element(const std::string& name_, Type type_, const attrlist_type* _a, const string_type* _v)
-	: name(name_), type(type_)
-	{
-		if (_a)
-			attributes = *_a;
-		if (_v)
-			data = *_v;
-	}
 
 };
 
