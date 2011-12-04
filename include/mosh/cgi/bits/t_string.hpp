@@ -38,6 +38,7 @@ std::basic_string<T> wide_string(const std::string& s) {
 	std::basic_string<T> t(s.size(), 0);
 	for (size_t i = 0; i < s.size(); ++i)
 		t[i] = wide_char<T>(s[i]);
+	return t;
 }
 
 MOSH_CGI_END

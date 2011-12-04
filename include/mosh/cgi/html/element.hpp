@@ -38,85 +38,20 @@ namespace html {
 
 namespace element {
 
-/*! @name Attribute taggers
- */
-//@{
-//Q Attribute tagger. Use it to create std::pair<T1,T2>s representing element attributes.
+//! Attribute tagger. Use it to create std::pair<T1,T2>s representing element attributes.
 template <typename charT>
 std::pair<std::string, std::basic_string<charT>>
-Attr(const std::string& s1, const std::basic_string<charT>& s2) {
+P(const std::string& s1, const std::basic_string<charT>& s2) {
 	return std::make_pair(s1, s2);
 }
 
-/*! @brief Attribute list tagger
- * When creating inline attribute list, enclose the first pair with an Attr_list
- * and use << to pipe in addition attributes.
- * @code
- * 	{ { "foo", "bar" }, { "alice", "bob" } } ->
- * 		Attr_list(Attr("foo")<<"bar")<<(Attr("alice")<<"bob")
- * or 		Attr_list() << (Attr("foo")<<"bar")<<(Attr("alice")<<"bob")
- * @endcode
- */
-template <typename charT>
-class Attr_list {
-	//! Typedef for ASCII strings (keys are always ascii)
-	typedef std::string str1_type;
-	//! Typedef for template-dependent strings
-	typedef std::basic_string<charT> str2_type;
-public:
-	//! Destructor
-	virtual ~Attr_list() { }
-	//! Create an Attr_list with a given attribute pair
-	Attr_list(const std::pair<str1_type, str2_type>& p)
-	{
-		attr.insert(p);
-	}
-	//! Add another attribute pair to the set
-	Attr_list& operator << (const std::pair<str1_type, str2_type>& p)
-	{
-		attr.insert(p);
-		return *this;
-	}
-	//! Get a const reference to the accumulated map
-	operator const std::map<str1_type, str2_type>& () const {
-		return attr;
-	}
-private:
-	//! Set of accumulated attributes
-	std::map<str1_type, str2_type> attr;
-};
-//@}
-/*! @brief String piper
- * When creating joinable inline strings, enclose the first value with Pipable() and use
- * << to pipe in additional values.
- * @code
- * 	"foo" + "bar" ->
- * 		Pipable("foo")<<"bar"
- * or		Pipable() << "foo" << "bar"
- * @endcode
- */
-template <typename charT>
-class Pipable {
-public:
-	//! Create a Pipable with a given string
-	Pipable(const std::basic_string<charT>& _str)
-	: str(_str)
-	{ }
-	//! Destructor
-	virtual ~Pipable() { }
-	//! Add another value to the string
-	Pipable& operator << (const std::basic_string<charT>& str2) {
-		str += str2;
-		return *this;
-	}
-	//! Get a const reference to the accumulated string
-	operator const std::basic_string<charT>& () const {
-		return str;
-	}
-private:
-	//! The accumulated string
-	std::basic_string<charT> str;
-};
+std::pair<std::string, std::string> SP(const std::string& s1, const std::string& s2) {
+	return P(s1, s2);
+}
+
+std::pair<std::string, std::wstring> WSP(const std::string& s1, const std::wstring& s2) {
+	return P(s1, s2);
+}
 
 //! An HTML element
 template <typename charT>
@@ -157,29 +92,117 @@ public:
 	 */
 	//@{
 	/*! @brief Add an attribute.
-	 *  @param[in] _a Attribute
+	 *  @param[in] _a attribute
+	 */
+	Element& operator () (const attribute_type& _a) {
+		attributes.insert(_a);
+		return *this;
+	}
+
+	/*! @brief Add attribute(s).
+	 *  @param[in] _a-{} list of attributes
+	 */
+	Element& operator () (std::initializer_list<attribute_type> _a) {
+		for (const auto& at : _a)
+			attributes.insert(at);
+		return *this;
+	}
+	
+	/*! @brief Add a value.
+	 *  @param[in] _v value
+	 */
+	Element& operator () (const string_type& _v) {
+		data += _v;
+		return *this;
+	}
+
+	/*! @brief Add value(s).
+	 *  @param[in] _v {}-list of values
+	 */
+	Element& operator () (std::initializer_list<string_type> _v) {
+		for (const string_type& vv : _v)
+			data += vv;
+		return *this;
+	}
+
+	/*! @brief Add an attribute and a value.
+	 *  @param[in] _a attribute
+	 *  @param[in] _v value
+	 */
+	Element& operator () (const attribute_type& _a, const string_type& _v) {
+		attributes.insert(_a);
+		data += _v;
+		return *this;
+	}
+	
+	/*! @brief Add an attribute and value(s).
+	 *  @param[in] _a attribute
+	 *  @param[in] _v {}-list of values
+	 */
+	Element& operator () (const attribute_type& _a, std::initializer_list<string_type> _v) {
+		attributes.insert(_a);
+		for (const string_type& vv : _v)
+			data += vv;
+		return *this;
+	}
+
+	/*! @brief Add attribute(s) and a value.
+	 *  @param[in] _a {}-list of attributes
+	 *  @param[in] _v value
+	 */
+	Element& operator () (std::initializer_list<attribute_type> _a, const string_type& _v) {
+		for (const auto& at : _a)
+			attributes.insert(at);
+		data += _v;
+		return *this;
+	}
+
+	/*! @brief Add attribute(s) and value(s).
+	 *  @param[in] _a {}-list of attributes
+	 *  @param[in] _v {}-list of values
+	 */
+	Element& operator () (std::initializer_list<attribute_type> _a, std::initializer_list<string_type> _v) {
+		for (const auto& at : _a)
+			attributes.insert(at);
+		for (const string_type& vv : _v)
+			data += vv;
+		return *this;
+	}
+
+	/*! @brief Add an attribute.
+	 *  @param[in] _a attribute
 	 */
 	Element& operator << (const attribute_type& _a) {
 		attributes.insert(_a);
 		return *this;
 	}
 
-	/*! @brief Add a given set of attributes.
-	 * @param[in] _a Attributes
+	/*! @brief Add attribute(s).
+	 * @param[in] _a {}-list of attributes
 	 */
-	Element& operator << (const attrlist_type& _a) {
+	Element& operator << (std::initializer_list<attribute_type> _a) {
 		for (const auto& at : _a)
 			attributes.insert(at);
 		return *this;
 	}
 
-	/*! @brief Add a given embedded value
-	 * @param[in] _v Embedded value
+	/*! @brief Add a value.
+	 * @param[in] _v value
 	 */
 	Element& operator << (const string_type& _v) {
 		data += _v;
 		return *this;
 	}
+	
+	/*! @brief Add value(s).
+	 * @param[in] _v {}-list of values
+	 */
+	Element& operator << (std::initializer_list<string_type> _v) {
+		for (const auto& vv : _v)
+			attributes.insert(vv);
+		return *this;
+	}
+
 	//@}
 
 	/*! @brief String cast operator
@@ -206,7 +229,7 @@ public:
 			s << wide_char<charT>(' ');
 			s << wide_char<charT>('/');
 		} else {
-			if (is_boolean(type)) {
+			if (type == Type::boolean) {
 				s << wide_char<charT>('>');
 			}
 			s << data;
@@ -319,5 +342,6 @@ Element_generator<wchar_t> WSElement;
 }
 
 MOSH_CGI_END
+
 
 #endif
