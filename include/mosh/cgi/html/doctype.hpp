@@ -3,7 +3,6 @@
  *  Copyright (C) 1996 - 2004 Stephen F. Booth <sbooth@gnu.org>
  *                       2007 Sebastien DIAZ <sebastien.diaz@gmail.com>
  *                       2011 m0shbear
- *  Part of the GNU cgi library, http://www.gnu.org/software/cgi
  *
  *  This library is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public
@@ -34,8 +33,10 @@
 
 MOSH_CGI_BEGIN
 
+//! HTML classes
 namespace html {
 
+//! HTML Doctype classes
 namespace doctype {
 //! Doctype for W3C HTML
 template <class charT>
@@ -77,54 +78,78 @@ private:
 	std::string link;
 };
 
+//! HTML revision
+enum class HTML_revision {
+	//! HTML 4.01 (Strict)
+	html_4,
+	//! HTML 4.01 Strict
+	html_4_strict = html_4,
+	//! HTML 4.01 Frameset
+	html_4_frameset,
+	//! HTML 4.01 Transitional
+	html_4_transitional,
+	//! XHTML 1.0 (Strict)
+	xhtml_10,
+	//! XHTML 1.0 Strict
+	xhtml_10_strict = xhtml10,
+	//! XHTML 1.0 Transitional
+	xhtml_10_transitional,
+	//! XHTML 1.0 Frameset
+	xhtml_10_frameset,
+	//! XHTML 1.1
+	xhtml_11,
+	//! XHTML Basic 1.1
+	xhtml_basic_11,
+	//! HTML 5
+	html_5
+};
+
 //! Singleton doctype generator
 template <typename charT>
-class HTML_doctype_generator {
+class HTML_doctype_generator
+{
 public:
-	struct Doctype_not_found : std::invalid_argument {
-		Doctype_not_found(const std::string& s)
-		: std::invalid_argument(s)
-		{
-		}
+	W3C_html_doctype<charT> operator () (HTML_revisision hr) const {
 
-	W3C_html_doctype<charT> operator [] (const std::string& name) const {
-		return _generator::instance()[name];
+		return _generator::instance()(hr);
 	}
 private:
 	class _generator : public Singleton<_generator> {
 	public:
 		//! Initialization
 		_generator() {
-			dtds = { P("HTML 4", "html4/strict"), P("HTML 4 Strict", "html4/strict"),
-				P("HTML 4.01", "html4/strict"), P("HTML 4.01 Strict", "html4/strict"),
-				P("HTML 4 Transitional", "html4/loose"), P("HTML 4.01 Transitional", "html4/loose"),
-				P("HTML 4 Frameset", "html4/frameset"), P("HTML 4.01 Frameset", "html4/frameset"),
-				P("XHTML 1.0 Strict", "xhtml1/DTD/xhtml1-strict"),
-				P("XHTML 1.0 Transitional", "xhtml1/DTD/xhtml1-transitional"),
-				P("XHTML 1.0 Framset", "xhtml1/DTD/xhtml1-frameset"),
-				P("XHTML 1.1", "xhtml11/DTD/xhtml11"),
-				P("XHTML Basic 1.1", "xhtml-basic/xhtml-basic11"),
-				P("HTML 5", "")
+			dtds = { 
+				{HTML_revision::html_4,
+					{"HTML 4.01", "html4/strict"}},
+				{HTML_revision::html_4_transitional,
+					{"HTML 4.01 Transitional", "html4/loose"}}
+				{HTML_revision::html_4_frameset,
+					{"HTML 4.01 Frameset", "html4/frameset"}}
+				{HTML_revision::xhtml_10,
+					{"XHTML 1.0 Strict", "xhtml1/DTD/xhtml1-strict"}}
+				{HTML_revision::xhtml_10_transitional,
+					{"XHTML 1.0 Transitional", "xhtml1/DTD/xhtml1-transitional"}}
+				{HTML_revision::xhtml_10_frameset,
+					{"XHTML 1.0 Framset", "xhtml1/DTD/xhtml1-frameset"}}
+				{HTML_revision::xhtml_11,
+					{"XHTML 1.1", "xhtml11/DTD/xhtml11"}}
+				{HTML_revision::xhtml_basic_11,
+					{"XHTML Basic 1.1", "xhtml-basic/xhtml-basic11"}}
+				{HTML_revision::html_5,
+					{"", ""}}
 			};
 		}
 		//! Generate a <!DOCTYPE
-		W3C_html_doctype<charT> operator [] (const std::string& name) const {
+		W3C_html_doctype<charT> operator () (const std::string& name) const {
 			const auto d = dtds.find(name);
 			if (d == dtds.end()) {
-				throw Doctype_not_found(name);
+				throw std::invalid_argument("doctype does not exist");
 			}
-			if (d->second.empty()) {
-				return W3C_html_doctype("", "");
-			} else {
-				return W3C_html_doctype(d->first, d->second);
-			}
+			auto& _d = d.second;
+			return W3C_html_doctype(_d.first, _d.second);
 		}
 	private:
-		std::pair<std::string, std::string> P(std::string&& s1, std::string&& s2) {
-			return std::make_pair(std::forward(s1), std::forward(s2));
-		}
-
-		std::map<std::string, std::string> dtds;
+		std::map<HTML_revision, std::pair<std::string, std::string>> dtds;
 	};
 };
 

@@ -1,7 +1,8 @@
 //! @file mosh/cgi/http/cookie.hpp HTTP Cookie class
 /*                              
- * Copyright (C) 1996-2007 GNU Cgicc team
- *           (C) 2011 m0shbear
+ * Copyright (C) 1996-2004 Stephen F. Booth
+ * 		 2007	   Sebastian Diaz
+ * 		 2011  	   m0shbear
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -22,114 +23,131 @@
 #ifndef MOSH_CGI_HTTP_COOKIE_HPP
 #define MOSH_CGI_HTTP_COOKIE_HPP
 
+#include <initializer_list>
 #include <string>
-#include <sstream>
-#include <locale>
-#include <boost/lexical_cast.hpp>
-#include <mosh/cgi/http/_/misc.hpp>
-#include <mosh/cgi/streamable.hpp>
-#include <mosh/cgi/bits/ci_strcomp.hpp>
 #include <mosh/cgi/bits/namespace.hpp>
 
 MOSH_CGI_BEGIN
 
+//! HTTP related stuff
 namespace http {
 
-template <class charT>
-class Cookie : public Streamable<charT>
-{
-	typedef Streamable<charT> base_Streamable;
-	typedef Cookie<charT> this_type;
-	typedef typename base_Streamable::string_type string_type;
+/*! @brief HTTP Cookie
+ */
+class Cookie {
 public:
-	Cookie() : Cookie("", "") {
-	}
-	Cookie(const string_type& name_, const string_type& value_)
-	: Cookie(name_, value_, "" /* comment */, "" /* domain */, 0 /* max_age */, "" /* path */) {
-	}
+	//! Default constructor
+	Cookie()
+	{ }
+	/*! @brief Create a cookie
+	 *  @param[in] name_ cookie name
+	 *  @param[in] value_ cookie value
+	 */
+	Cookie(const std::string& name_, const std::string& value_) noexcept
+	: Cookie(name_, value_, "" /* comment */, "" /* domain */, 0 /* max_age */, "" /* path */)
+	{ }
 
-	Cookie(const string_type& name_, const string_type& value_, const string_type& comment_,
-	           const string_type& domain_, unsigned long max_age_, const string_type& path_, bool secure_ = false)
-	: base_Streamable(), name(name_), value(value_), comment(comment_), domain(domain_), max_age(max_age_), path(path_),
-			secure(secure_), removed(false) {
-	}
+	/*! @brief Create a cookie ({} form)
+	 *  @param[in] string_args {}-list of string arguments
+	 *  @param[in] ulong_args {}-list of integral arguments
+	 *  @param[in} bool_args {}-list of boolean arguments
+	 *  @note string_args is of form { key, value *[, comment, domain, path ] }, where * denotes optional
+	 *  @note
+	 *  @note ulong_args is of form *{ max_age }
+	 *  @note
+	 *  @note bool_args is of form *{ secure, *removed, *http_only }
+	 */
+	Cookie(std::initializer_list<std::string> string_args,
+		std::initializer_list<unsigned long> ulong_args = ulong_args_default,
+		std::initializer_list<bool> bool_args = bool_args_default
+	);
 
-	Cookie(const this_type& cookie)
+	/*! @brief Create a fully-specified cookie
+	 *  @param[in] name_ cookie name
+	 *  @param[in] value_ cookie value
+	 *  @param[in] comment_ any comment associated with this cookie
+	 *  @param[in] domain_ a domain for which this cookie is valid
+	 *
+	 *  @param[in] max_age_ a number of seconds definition the lifetime of this cookie
+	 *  @param[in] path_ the subset of URLs in a domain for whih the cookie is valid
+	 *  @param[in] secure_ specifies whether this is a secure cookie
+	 *  @param[in] http_only_ specified whether HTTP-only scope restriction is in effect
+	 */
+	Cookie(const std::string& name_, const std::string& value_, const std::string& comment_,
+	           const std::string& domain_, unsigned long max_age_, const std::string& path_,
+		   bool secure_ = false, bool http_only_ = true) noexcept
+	: name(name_), value(value_), comment(comment_), domain(domain_), max_age(max_age_), path(path_),
+		secure(secure_), removed(false), http_only(http_only_)
+	{ }
+	//! Copy constructor
+	Cookie(const Cookie& cookie) noexcept
 	: Cookie(cookie.name, cookie.value, cookie.comment, cookie.domain, cookie.max_age, cookie.path,
-			cookie.secure) {
+		cookie.secure, cookie.http_only)
+	{
 		removed = cookie.removed;
 	}
-	virtual ~Cookie() {
-	}
-	bool operator==(const this_type& cookie) const {
-		return (this == &cookie)||
-			(ci_equality(name, cookie.name)
-			&& ci_equality(value, cookie.value)
-			&& ci_equality(comment, cookie.comment)
-			&& ci_equality(domain, cookie.domain)
-			&& max_age == cookie.max_age
-			&& ci_equality(path, cookie.path)
-			&& secure == cookie.secure
-			&& removed == cookie.removed);
-	}
-	bool operator !=(const this_type& cookie)const {
-		return !operator==(cookie);
-	}
-
-	void remove() {
-		removed = true;
-	}
-	
-	this_type& markSecurity(const bool sec = false) {
-		secure = sec;
-		return *this;
-	}
-
-	static Cookie<charT> deleted(const string_type& name_, const string_type& domain_, 
-					const string_type& path_, bool secure_)
+	//! Move constructor
+	Cookie(Cookie&& cookie) noexcept
+	: name(std::move(cookie.name)), value(std::move(cookie.value)), comment(std::move(cookie.comment)),
+		domain(std::move(cookie.domain)), max_age(cookie.max_age), path(std::move(cookie.path)),
+		secure(cookie.secure), removed(cookie.removed), http_only(cookie.http_only)
+	{ }
+	//! Destructor
+	virtual ~Cookie()
+	{ }
+	/*! @brief Create a partially-specified cookie for deletion
+	 *  @param[in] name_ cookie name
+	 *  @param[in] domain_ a domain for which this cookie is valid
+	 *  @param[in] path_ the subset of URLs in a domain for whih the cookie is valid
+	 *  @param[in] secure_ specifies whether this is a secure cookie
+	 *  @param[in] http_only_ specified whether HTTP-only scope restriction is in effect
+	 *  @return a deleted cookie
+	 */
+	static Cookie deleted(const std::string& name_, const std::string& domain_, 
+					const std::string& path_, bool secure_, bool http_only_) noexcept
 	{
-		Cookie<charT> c(name_, "" /* value */, "" /* comment */,  domain_, 0, path_, secure_);
+		Cookie c(name_, "" /* value */, "" /* comment */,  domain_, 0, path_, secure_, http_only_);
 		c.removed = true;
 		return c;
 	}
-
-	virtual void render(typename base_Streamable::ostream_type& out) const {
-		out << T_STRING(charT, "Set-Cookie:");
-		out << name;
-		out << '=' << '"';
-		out << value;
-		out << '"';
-		if (!comment.empty())
-			out << T_STRING(charT, "; Comment=") << comment;
-		if (!domain.empty())
-			out << T_STRING(charT, "; Domain=") << domain;
-		if (removed) {
-			out << T_STRING(charT, "; Expires=Fri, 01-Jan-1971 01:00:00 GMT");
-			out << T_STRING(charT, "; Max-Age=0");
-		} else if (max_age) {
-			out << T_STRING(charT, "; Max-Age=") << max_age;
-			out << T_STRING(charT, "; Expires=") << time_to_string();
-		}
-		if (!path.empty())
-			out << T_STRING(charT, "; Path=") << path;
-		if (secure)
-			out << T_STRING(charT, "; Secure");
-		
-		out << T_STRING(charT, "; Version=1");
+	//! Compare for equality
+	bool operator == (const Cookie& cookie) const;
+	
+	//! Compare for inequality
+	bool operator != (const Cookie& cookie) const {
+		return !operator==(cookie);
 	}
+	
+	//! Convert to string
+	operator std::string () const;
 
-	string_type comment;
-	string_type domain;
+	//! The name of this cookie	
+	std::string name;
+	//! The value of this cookie
+	std::string value;
+	//! The comment associated with this cookie
+	std::string comment;
+	//! The domain for which this cookie is valid
 	unsigned long max_age;
-	string_type path;
+	//! the subset of URLs in a domain for which this cookie is valid
+	std::string domain;
+	//! Number of seconds defining the lifetime of this cookie
+	std::string path;
+	//! specifies whether this is a secure cookie (i.e. can only be set on a HTTPS connection)
 	bool secure;
+	/*! @brief specifies whether to limit the scope of the cookie to HTTP requests (see RFC 6265 (S) 4.1.2.6)
+	 *  Enabled by default for anti-XSS purposes
+	 */
+	bool http_only;
+	//! this cookie's removal state (@c true if deleted, @c false otherwise)
 	bool removed;
-protected:
-	// Returns current time + max_age, in UTC form
-	string_type time_to_string() const {
-		return T_STRING(charT, time_to_string("%a, %d-%b-%Y %H:%M:%S GMT", max_age));
-	}
+private:
+	std::initializer_list<unsigned long> ulong_args_default = { 0 /* max_age */ };
+	std::initializer_list<bool> bool_args_default = { false /* secure */, false /* removed */, true /* http_only */ };
+
 };
+
+}
 
 MOSH_CGI_END
 

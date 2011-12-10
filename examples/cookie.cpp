@@ -33,6 +33,7 @@
 #include <cstdlib>
 
 //#include <mosh/cgi/http/content_header_classes.hpp>
+#include <mosh/cgi/html/doctype.hpp>
 #include <mosh/cgi/html/element.hpp>
 
 #if HAVE_SYS_UTSNAME_H
@@ -95,7 +96,7 @@ try {
 			cout << HTTPHTMLHeader();
 
 		// Output the HTML 4.0 DTD info
-		cout << HTMLDoctype(HTMLDoctype::eStrict) << endl;
+		cout << SHTML_Doctype["HTML 4 Strict"];
 		html::element::Element<char> myHtml = html::element::SElement["html"] << html::element::Attr("lang", "en")
 		                                      << html::element::Attr("dir", "ltr");
 		// Set up the page's header and title.
