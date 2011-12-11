@@ -256,6 +256,9 @@ namespace ws {
 	//!  <wbr> (HTML 5)
 	const Element wbr ("wbr", Type::binary); 
 	
+	//! <!-- ... -->
+	const Element comment ("!--", Type::comment);
+	
 	//! @c wchar_t specialization of Html_begin<T>
 	typedef HTML_begin<wchar_t> html_begin;
 	//! @c wchar_t specialization of Html_end<T>

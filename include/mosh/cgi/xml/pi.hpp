@@ -57,7 +57,7 @@ struct PI {
 		}
 		return *this;
 	}
-
+	//! String cast operator
 	virtual operator string () const {
 		std::basic_stringstream<charT> s;
 		s << wide_string<charT>("<?") << name;
@@ -69,6 +69,10 @@ struct PI {
 		}
 		s << wide_string<charT>("?>");
 		return s.str();
+	}
+	//! String cast operator
+	virtual operator const char* () const {
+		return static_cast<std::string>(*this).c_str();
 	}
 };
 

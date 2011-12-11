@@ -41,7 +41,6 @@ namespace doctype {
 //! Doctype for W3C HTML
 template <class charT>
 class W3C_html_doctype {
-	typedef typename std::basic_string<charT> string;
 public:
 
 	/*! @brief Constructor.
@@ -55,7 +54,7 @@ public:
 	virtual ~W3C_html_doctype() { }
 public:
 	//! Print the <!DOCTYPE tag
-	operator string () const {
+	operator std::basic_string<charT> () const {
 		if (name.empty()) {
 			return wide_string<charT>("<!DOCTYPE html>"); // HTML 5
 		} else {
@@ -69,7 +68,11 @@ public:
 			s << wide_string<charT>("\r\n");
 			return s.str();
 		}
-	}	
+	}
+	//! Print the <!DOCTYPE tag
+	operator const charT* () const {
+		return this->template operator std::basic_string<charT>().c_str();
+	}
 
 private:
 	//! DTD Name

@@ -49,7 +49,7 @@ Cookie::Cookie(std::initializer_list<std::string> string_args,
 	std::initializer_list<bool> bool_args)
 {
 	{
-		std::string* s_arg = string_args.begin();
+		const std::string* s_arg = string_args.begin();
 		switch (string_args.size()) {
 		case 5:
 			comment = s_arg[2];
@@ -65,7 +65,7 @@ Cookie::Cookie(std::initializer_list<std::string> string_args,
 	}
 
 	{
-		unsigned long* ul_arg = ulong_args.begin();
+		const unsigned long* ul_arg = ulong_args.begin();
 		switch (ulong_args.size()) {
 		case 1:
 			max_age = ul_arg[0];
@@ -75,7 +75,7 @@ Cookie::Cookie(std::initializer_list<std::string> string_args,
 	}
 
 	{
-		bool* bool_arg = bool_args.begin();
+		const bool* bool_arg = bool_args.begin();
 		switch (bool_args.size()) {
 		case 3:
 			removed = bool_arg[2];
@@ -141,4 +141,3 @@ std::initializer_list<bool> Cookie::bool_args_default = { false, false, true };
 
 MOSH_CGI_END
 
-#endif

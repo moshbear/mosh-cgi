@@ -274,6 +274,10 @@ public:
 
 		return s.str();
 	}
+	//! String cast operator
+	virtual operator const charT* () const {
+		return this->operator string().c_str();
+	}
 protected:
 	//! Default constructor for derived classes
 	Element() { }
@@ -485,8 +489,12 @@ private:
 //! This class prints </html>
 template <typename charT>
 struct HTML_end {
-	operator std::basic_string<charT> () const {
+	virtual operator std::basic_string<charT> () const {
 		return wide_string<charT>("</html>");
+	}
+	//! String cast operator
+	virtual operator const charT* () const {
+		return this->operator std::basic_string<charT>().c_str();
 	}
 };
 
@@ -550,8 +558,12 @@ protected:
 //! This class prints </body>
 template <typename charT>
 struct Body_end {
-	operator std::basic_string<charT> () const {
+	virtual operator std::basic_string<charT> () const {
 		return wide_string<charT>("</body>");
+	}
+	//! String cast operator
+	virtual operator const charT* () const {
+		return this->operator std::basic_string<charT>().c_str();
 	}
 };
 

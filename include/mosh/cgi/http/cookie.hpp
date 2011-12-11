@@ -117,8 +117,13 @@ public:
 		return !operator==(cookie);
 	}
 	
-	//! Convert to string
+	//! String cast operator
 	operator std::string () const;
+
+	//! String cast operator
+	operator const char* () const {
+		return this->operator std::string().c_str();
+	}
 
 	//! The name of this cookie	
 	std::string name;

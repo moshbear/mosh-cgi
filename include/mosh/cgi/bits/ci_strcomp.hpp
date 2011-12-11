@@ -22,10 +22,10 @@
 #define MOSH_CGI_CI_STRCOMP_HPP
 
 #include <algorithm>
-#include <ctype>
+#include <cctype>
 #include <cwctype>
 #include <string>
-#include <cgi/mosh/bits/namespace.hpp>
+#include <mosh/cgi/bits/namespace.hpp>
 
 MOSH_CGI_BEGIN
 
