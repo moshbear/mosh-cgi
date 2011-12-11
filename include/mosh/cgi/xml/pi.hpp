@@ -1,13 +1,32 @@
-/* Abstracts an XML Processing Instruction.
+//! @file mosh/cgi/xml/pi.h Class that abstracts an XML Processing Instruction
+/*
+ *  Copyright (C) 1996 - 2004 Stephen F. Booth <sbooth@gnu.org>
+ *                       2007 David Roberts
+ *		         2007 Sebastien DIAZ <sebastien.diaz@gmail.com>
+ *		         2011 m0shbear
+ *
+ *  This library is free software; you can redistribute it and/or
+ *  modify it under the terms of the GNU Lesser General Public
+ *  License as published by the Free Software Foundation; either
+ *  version 3 of the License, or (at your option) any later version.
+ *
+ *  This library is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *  Lesser General Public License for more details.
+ *
+ *  You should have received a copy of the GNU Lesser General Public
+ *  License along with this library; if not, write to the Free Software
+ *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110, USA 
  */
 #ifndef MOSH_CGI_XML_PI_H
 #define MOSH_CGI_XML_PI_H
 
 #include <string>
-#include <ostream>
+#include <sstream>
 #include <map>
 
-#include <mosh/cgi/bits/streamable.hpp>
+#include <mosh/cgi/bits/t_string.hpp>
 #include <mosh/cgi/bits/namespace.hpp>
 
 MOSH_CGI_BEGIN
@@ -15,34 +34,41 @@ MOSH_CGI_BEGIN
 namespace xml {
 
 template <class charT>
-class PI: public Streamable<charT> {
-	typedef Streamable<charT> base_type;
-	typedef PI<charT> this_type;
-public:
-	typedef typename base_type::string_type string_type;
-	typedef typename base_type::ostream_type ostream_type;
-	std::map<string_type, string_type> attributes;
-	string_type name;
+struct PI {
+	typedef typename std::basic_string<charT> string;
+	std::map<std::string, string> attributes;
+	string name;
 
-	PI(const string_type& name_)
+	PI(const string& name_)
 	: base_type(), attributes(), name(name_) {
 	}
 	virtual ~PI() {}
-	this_type& operator=(const this_type& element) {
+	
+	PI<charT>& operator=(const PI<charT>& element) {
 		if (this != &element) {
 			attributes = element.attributes;
 		}
 		return *this;
 	}
+	
+	PI<charT>& operator=(PI<charT>&& element) {
+		if (this != &element) {
+			attributes = std::move(element.attributes);
+		}
+		return *this;
+	}
 
-	virtual void render(ostream_type& out) const {
-		out '<' << '?' << name;
+	virtual operator string () const {
+		std::basic_stringstream<charT> s;
+		s << wide_string<charT>("<?") << name;
 		if (!attributes.empty()) {
-			for (const auto& att : attributes) {
-				out << ' ' << att.first << '=' << '"' << att.second << '"';
+			for (const auto& a : attributes) {
+				s << wide_string<charT>(" " + a.first);
+				s << wide_string<charT>("=\"") << a.second << wide_char<charT>('"');
 			}
 		}
-		out << '?' << '>';
+		s << wide_string<charT>("?>");
+		return s.str();
 	}
 };
 

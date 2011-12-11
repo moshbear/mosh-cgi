@@ -100,6 +100,27 @@ public:
 	//! Destructor
 	virtual ~Element() { }
 
+	//! Assignment operator
+	this_type& operator = (const this_type& e) {
+		if (this != &e) {
+			name = e.name;
+			type = e.type;
+			attributes = e.attributes;
+			data = e.data;
+		}
+		return *this;
+	}
+	//! Assignment operator
+	this_type operator = (this_type&& e) {
+		if (this != &e) {
+			name = std::move(e.name);
+			type = e.type;
+			attributes = std::move(e.attributes);
+			data = std::move(e.data);
+		}
+		return *this;
+	}
+
 	/*! @name Clone and call
 	 * These overloads create new elements which behave as if attributes and values 
 	 * were appended to existing elements.
@@ -550,10 +571,10 @@ struct Body_end {
 	}
 };
 
-#ifdef MOSH_CGI_BYTE_ELEMENTS
+#ifdef MOSH_CGI_USING_BYTE_ELEMENTS
 #include <mosh/cgi/element/s.hpp>
 #endif
-#ifdef MOSH_CGI_WIDE_ELEMENTS
+#ifdef MOSH_CGI_USING_WIDE_ELEMENTS
 #include <mosh/cgi/element/ws.hpp>
 #endif
 

@@ -2,7 +2,7 @@
 /*
  *  Copyright (C) 1996 - 2004 Stephen F. Booth <sbooth@gnu.org>
  *                       2007 David Roberts
-		     2007 Sebastien DIAZ <sebastien.diaz@gmail.com>
+ *		         2007 Sebastien DIAZ <sebastien.diaz@gmail.com>
  *
  *  This library is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public
@@ -31,16 +31,14 @@ MOSH_CGI_BEGIN
 namespace xml {
 
 template <class charT>
-class Declaration: public PI<charT> {
-	typedef PI<charT> base_type;
-public:
-	typedef typename base_type::string_type string_type;
-	Declaration(string_type& version = T_STRING(charT, "1.0"))
-	: base_type(T_STRING(charT, "xml")) {
-		this->attributes.push_back(typename base_type::attribute_type(T_STRING(charT, "version"), version));
+struct Declaration : public PI<charT> {
+	Declaration(std::basic_string<charT>& version = wide_string<charT>("1.0"))
+	: PI(wide_string<charT>("xml"))
+	{
+		this->attributes.insert({"version", version});
 	}
-	virtual ~Declaration() {
-	}
+	virtual ~Declaration()
+	{ }
 };
 
 }
