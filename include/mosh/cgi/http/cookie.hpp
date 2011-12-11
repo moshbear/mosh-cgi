@@ -44,18 +44,18 @@ public:
 	 *  @param[in] value_ cookie value
 	 */
 	Cookie(const std::string& name_, const std::string& value_) noexcept
-	: Cookie(name_, value_, "" /* comment */, "" /* domain */, 0 /* max_age */, "" /* path */)
+	: name(name_), value(value_)
 	{ }
 
 	/*! @brief Create a cookie ({} form)
 	 *  @param[in] string_args {}-list of string arguments
 	 *  @param[in] ulong_args {}-list of integral arguments
-	 *  @param[in} bool_args {}-list of boolean arguments
+	 *  @param[in] bool_args {}-list of boolean arguments
 	 *  @note string_args is of form { key, value *[, comment, domain, path ] }, where * denotes optional
 	 *  @note
-	 *  @note ulong_args is of form *{ max_age }
+	 *  @note ulong_args is of form { max_age }
 	 *  @note
-	 *  @note bool_args is of form *{ secure, *removed, *http_only }
+	 *  @note bool_args is of form { secure, *http_only, *removed }
 	 */
 	Cookie(std::initializer_list<std::string> string_args,
 		std::initializer_list<unsigned long> ulong_args = ulong_args_default,
@@ -76,21 +76,20 @@ public:
 	Cookie(const std::string& name_, const std::string& value_, const std::string& comment_,
 	           const std::string& domain_, unsigned long max_age_, const std::string& path_,
 		   bool secure_ = false, bool http_only_ = true) noexcept
-	: name(name_), value(value_), comment(comment_), domain(domain_), max_age(max_age_), path(path_),
-		secure(secure_), removed(false), http_only(http_only_)
+	: name(name_), value(value_), comment(comment_), max_age(max_age_), domain(domain_), path(path_),
+		secure(secure_), http_only(http_only_), removed(false)
 	{ }
 	//! Copy constructor
 	Cookie(const Cookie& cookie) noexcept
-	: Cookie(cookie.name, cookie.value, cookie.comment, cookie.domain, cookie.max_age, cookie.path,
-		cookie.secure, cookie.http_only)
-	{
-		removed = cookie.removed;
-	}
+	: name(cookie.name), value(cookie.value), comment(cookie.comment), max_age(cookie.max_age),
+		domain(cookie.domain), path(cookie.path), secure(cookie.secure), http_only(cookie.http_only),
+		removed(cookie.removed)
+	{ }
 	//! Move constructor
 	Cookie(Cookie&& cookie) noexcept
 	: name(std::move(cookie.name)), value(std::move(cookie.value)), comment(std::move(cookie.comment)),
-		domain(std::move(cookie.domain)), max_age(cookie.max_age), path(std::move(cookie.path)),
-		secure(cookie.secure), removed(cookie.removed), http_only(cookie.http_only)
+		max_age(cookie.max_age), domain(std::move(cookie.domain)), path(std::move(cookie.path)),
+		secure(cookie.secure), http_only(cookie.http_only), removed(cookie.removed)
 	{ }
 	//! Destructor
 	virtual ~Cookie()
@@ -142,8 +141,8 @@ public:
 	//! this cookie's removal state (@c true if deleted, @c false otherwise)
 	bool removed;
 private:
-	std::initializer_list<unsigned long> ulong_args_default = { 0 /* max_age */ };
-	std::initializer_list<bool> bool_args_default = { false /* secure */, false /* removed */, true /* http_only */ };
+	static std::initializer_list<unsigned long> ulong_args_default;
+	static std::initializer_list<bool> bool_args_default;
 
 };
 

@@ -78,9 +78,9 @@ Cookie::Cookie(std::initializer_list<std::string> string_args,
 		bool* bool_arg = bool_args.begin();
 		switch (bool_args.size()) {
 		case 3:
-			http_only = bool_arg[2];
+			removed = bool_arg[2];
 		case 2:
-			removed = bool_arg[1];
+			http_only = bool_arg[1];
 		case 1:
 			secure = bool_arg[0];
 		default:
@@ -133,6 +133,9 @@ Cookie::operator std::string () const {
 	ss << "; Version=\"1\"";
 	return ss.str();
 }
+
+std::initializer_list<unsigned long> Cookie::ulong_args_default = { 0 };
+std::initializer_list<bool> Cookie::bool_args_default = { false, false, true };
 
 } // http
 

@@ -16,6 +16,8 @@
  *  License along with this library; if not, write to the Free Software
  *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110, USA
  */
+#ifdef MOSH_CGI_HTML_ELEMENT_HPP
+
 #ifndef MOSH_CGI_HTML_ELEMENT__S_HPP
 #define MOSH_CGI_HTML_ELEMENT__S_HPP
 
@@ -126,7 +128,7 @@ namespace s {
 	//! <html>
 	const Element html ("html", Type::binary);
 	//! <i>
-	const Element i ("i", Type::binary)
+	const Element i ("i", Type::binary);
 	//! <iframe> (Frameset DTDs only / HTML 5)
 	const Element iframe ("iframe", Type::binary);
 	//! <img>
@@ -164,7 +166,7 @@ namespace s {
 	//! <object>
 	const Element object ("object", Type::binary);
 	//! <ol>
-	const Element ol ("ol", Tyoe::binary);
+	const Element ol ("ol", Type::binary);
 	//! <optgroup>
 	const Element optgroup ("optgroup", Type::binary);
 	//! <option>
@@ -184,17 +186,17 @@ namespace s {
 	//! <rb> (XHTML 1.1 Ruby)
 	const Element rb ("rb", Type::binary);
 	//! <rb> (XHTML 1.1 Ruby)
-	const Element rb ("rbc", Type::binary);
+	const Element rbc ("rbc", Type::binary);
 	//! <rp> (XHTML 1.1 / HTML 5 Ruby)
 	const Element rp ("rp", Type::binary);
 	//! <rt> (XHTML 1.1 / HTML 5 Ruby)
 	const Element rt ("rt", Type::binary);
 	//! <rtc> (XHTML 1.1 Ruby)
-	const Element rt ("rtc", Type::binary);
+	const Element rtc ("rtc", Type::binary);
 	//! <ruby> (XHTML 1.1 / HTML 5 Ruby)
 	const Element ruby ("ruby", Type::binary);
 	//! <s>
-	const Element s  ("s", Type::binary);
+	const Element s ("s", Type::binary);
 	//! <samp>
 	const Element samp ("samp", Type::binary);
 	//! <script>

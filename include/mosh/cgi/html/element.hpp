@@ -38,21 +38,6 @@ namespace html {
 //! HTML element classes
 namespace element {
 
-//! Attribute tagger. Use it to create std::pair<T1,T2>s representing element attributes.
-template <typename charT>
-std::pair<std::string, std::basic_string<charT>>
-P(std::string&& s1, std::basic_string<charT>&& s2) {
-	return std::make_pair(std:forward(s1), std::forward(s2));
-}
-
-std::pair<std::string, std::string> SP(std::string&& s1, std::string&& s2) {
-	return P(s1, s2);
-}
-
-std::pair<std::string, std::wstring> WSP(std::string&& s1, std::wstring&& s2) {
-	return P(s1, s2);
-}
-
 //! Enumeration for encoding type
 enum class Type {
 	//! Encodes an unary <foo /> element; resulting tag will have attributes but no data
@@ -88,13 +73,12 @@ public:
 
 	//! Copy constructor
 	Element(const Element& e)
-	: name(e.name), type(e.type), attributes(e.attributes), data(e.data)
+	: attributes(e.attributes), data(e.data), name(e.name), type(e.type)
 	{ }
 
 	//! Move constructor
 	Element(Element&& e)
-	: name(std::move(e.name)), type(e.type), attributes(std::move(e.attributes)),
-		data(std::move(e.data))
+	: attributes(std::move(e.attributes)), data(std::move(e.data)), name(std::move(e.name)), type(e.type)
 	{ }
 
 	//! Destructor
@@ -103,20 +87,20 @@ public:
 	//! Assignment operator
 	this_type& operator = (const this_type& e) {
 		if (this != &e) {
-			name = e.name;
-			type = e.type;
 			attributes = e.attributes;
 			data = e.data;
+			name = e.name;
+			type = e.type;
 		}
 		return *this;
 	}
 	//! Assignment operator
 	this_type operator = (this_type&& e) {
 		if (this != &e) {
-			name = std::move(e.name);
-			type = e.type;
 			attributes = std::move(e.attributes);
 			data = std::move(e.data);
+			name = std::move(e.name);
+			type = e.type;
 		}
 		return *this;
 	}
@@ -128,7 +112,7 @@ public:
 	//@{
 	/*! @brief Create a copy of @c *this.
 	 */
-	this_type operator () const {
+	this_type operator () () const {
 		return this_type(*this);
 	}
 
@@ -262,7 +246,7 @@ public:
 		std::basic_stringstream<charT> s;
 		s << wide_char<charT>('<');
 		s << wide_string<charT>(name);
-		for (const auto& a : attributes) {
+		for (const auto& a : this->attributes) {
 			s << wide_char<charT>(' ');
 			s << wide_string<charT>(a.first);
 			s << wide_char<charT>('=');
@@ -277,7 +261,7 @@ public:
 			if (type == Type::binary) {
 				s << wide_char<charT>('>');
 			}
-			s << data;
+			s << this->data;
 			if (type == Type::binary) {
 				s << wide_char<charT>('<');
 				s << wide_char<charT>('/');
@@ -431,7 +415,7 @@ public:
 	 *  @sa doctype::HTML_revision
 	 */
 	HTML_begin(doctype::HTML_revision type_ = doctype::HTML_revision::xhtml_10_transitional)
-	: Element(), type(type_)
+	: Element<charT>(), type(type_)
 	{
 		if (is_xhtml()) {
 			this->attributes.insert(std::make_pair("xmlns", wide_string<charT>("http://www.w3.org/1999/xhtml")));
@@ -440,12 +424,12 @@ public:
 
 	//! Copy constructor
 	HTML_begin(const HTML_begin& b)
-	: Element(b), type(b.type)
+	: Element<charT>(b), type(b.type)
 	{ }
 
 	//! Move constructor
 	HTML_begin(HTML_begin&& b)
-	: Element(std::move(b)), type(b.type)
+	: Element<charT>(std::move(b)), type(b.type)
 	{ }
 
 	//! Destructor
@@ -460,7 +444,7 @@ public:
 		doctype::HTML_doctype_generator<charT> dg;
 		s << dg(type);
 		s << wide_string<charT>("<html");
-		for (const auto& a : attributes) {
+		for (const auto& a : this->attributes) {
 			s << wide_char<charT>(' ');
 			s << wide_string<charT>(a.first);
 			s << wide_char<charT>('=');
@@ -523,16 +507,16 @@ public:
  
  	//! Default constructor
 	Body_begin()
-	: Element()
+	: Element<charT>()
 	{ }
 	//! Copy constructor
 	Body_begin(const Body_begin& b)
-	: Element(b)
+	: Element<charT>(b)
 	{ }
 
 	//! Move constructor
 	Body_begin(Body_begin&& b)
-	: Element(std::move(b))
+	: Element<charT>(std::move(b))
 	{ }
 
 	//! Destructor
@@ -545,7 +529,7 @@ public:
 	virtual operator string() const {
 		std::basic_stringstream<charT> s;
 		s << wide_string<charT>("<body");
-		for (const auto& a : attributes) {
+		for (const auto& a : this->attributes) {
 			s << wide_char<charT>(' ');
 			s << wide_string<charT>(a.first);
 			s << wide_char<charT>('=');
@@ -572,11 +556,48 @@ struct Body_end {
 };
 
 #ifdef MOSH_CGI_USING_BYTE_ELEMENTS
-#include <mosh/cgi/element/s.hpp>
+#include <mosh/cgi/html/element/s.hpp>
 #endif
 #ifdef MOSH_CGI_USING_WIDE_ELEMENTS
-#include <mosh/cgi/element/ws.hpp>
+#include <mosh/cgi/html/element/ws.hpp>
 #endif
+
+/*! @name Attribute taggers
+ */
+//@{
+//! Attribute tagger. Use it to create std::pair<T1,T2>s representing element attributes.
+template <typename charT>
+std::pair<std::string, std::basic_string<charT>>
+P(const std::string& s1, const std::basic_string<charT>& s2) {
+	return std::make_pair(s1, s2);
+}
+//! Attribute tagger. Use it to create std::pair<T1,T2>s representing element attributes.
+template <typename charT>
+std::pair<std::string, std::basic_string<charT>>
+P(std::string&& s1, std::basic_string<charT>&& s2) {
+	return std::make_pair(std::move(s1), std::move(s2));
+}
+//! @c char specialization of P
+std::pair<std::string, std::string>
+SP(const std::string& s1, const std::string& s2) {
+	return P(s1, s2);
+}
+//! @c char specialization of P
+std::pair<std::string, std::string>
+SP(std::string&& s1, std::string&& s2) {
+	return P(std::move(s1), std::move(s2));
+}
+//! @c wchar_t specialization of P
+std::pair<std::string, std::wstring>
+WSP(const std::string& s1, const std::wstring& s2) {
+	return P(s1, s2);
+}
+//! @c wchar_t specialization of P
+std::pair<std::string, std::wstring>
+WSP(std::string&& s1, std::wstring&& s2) {
+	return P(std::move(s1), std::move(s2));
+}
+//@}
 
 }
 

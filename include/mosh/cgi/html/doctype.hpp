@@ -56,7 +56,7 @@ public:
 public:
 	//! Print the <!DOCTYPE tag
 	operator string () const {
-		if (d_name.empty() {
+		if (name.empty()) {
 			return wide_string<charT>("<!DOCTYPE html>"); // HTML 5
 		} else {
 			// HTML 4, XHTML 1.0-1.1
@@ -67,8 +67,8 @@ public:
 			s << wide_string<charT>(link);
 			s << wide_string<charT>(".dtd\">");
 			s << wide_string<charT>("\r\n");
+			return s.str();
 		}
-		return s.str();
 	}	
 
 private:
@@ -91,7 +91,7 @@ enum class HTML_revision {
 	//! XHTML 1.0 (Strict)
 	xhtml_10,
 	//! XHTML 1.0 Strict
-	xhtml_10_strict = xhtml10,
+	xhtml_10_strict = xhtml_10,
 	//! XHTML 1.0 Transitional
 	xhtml_10_transitional,
 	//! XHTML 1.0 Frameset
@@ -109,7 +109,7 @@ template <typename charT>
 class HTML_doctype_generator
 {
 public:
-	W3C_html_doctype<charT> operator () (HTML_revisision hr) const {
+	W3C_html_doctype<charT> operator () (HTML_revision hr) const {
 
 		return _generator::instance()(hr);
 	}
@@ -118,35 +118,36 @@ private:
 	public:
 		//! Initialization
 		_generator() {
+
 			dtds = { 
 				{HTML_revision::html_4,
 					{"HTML 4.01", "html4/strict"}},
 				{HTML_revision::html_4_transitional,
-					{"HTML 4.01 Transitional", "html4/loose"}}
+					{"HTML 4.01 Transitional", "html4/loose"}},
 				{HTML_revision::html_4_frameset,
-					{"HTML 4.01 Frameset", "html4/frameset"}}
+					{"HTML 4.01 Frameset", "html4/frameset"}},
 				{HTML_revision::xhtml_10,
-					{"XHTML 1.0 Strict", "xhtml1/DTD/xhtml1-strict"}}
+					{"XHTML 1.0 Strict", "xhtml1/DTD/xhtml1-strict"}},
 				{HTML_revision::xhtml_10_transitional,
-					{"XHTML 1.0 Transitional", "xhtml1/DTD/xhtml1-transitional"}}
+					{"XHTML 1.0 Transitional", "xhtml1/DTD/xhtml1-transitional"}},
 				{HTML_revision::xhtml_10_frameset,
-					{"XHTML 1.0 Framset", "xhtml1/DTD/xhtml1-frameset"}}
+					{"XHTML 1.0 Framset", "xhtml1/DTD/xhtml1-frameset"}},
 				{HTML_revision::xhtml_11,
-					{"XHTML 1.1", "xhtml11/DTD/xhtml11"}}
+					{"XHTML 1.1", "xhtml11/DTD/xhtml11"}},
 				{HTML_revision::xhtml_basic_11,
-					{"XHTML Basic 1.1", "xhtml-basic/xhtml-basic11"}}
+					{"XHTML Basic 1.1", "xhtml-basic/xhtml-basic11"}},
 				{HTML_revision::html_5,
 					{"", ""}}
 			};
 		}
 		//! Generate a <!DOCTYPE
-		W3C_html_doctype<charT> operator () (const std::string& name) const {
-			const auto d = dtds.find(name);
+		W3C_html_doctype<charT> operator () (HTML_revision hr) const {
+			const auto d = dtds.find(hr);
 			if (d == dtds.end()) {
-				throw std::invalid_argument("doctype does not exist");
+				throw std::logic_error("unmapped doctype");
 			}
-			auto& _d = d.second;
-			return W3C_html_doctype(_d.first, _d.second);
+			auto& _d = d->second;
+			return W3C_html_doctype<charT>(_d.first, _d.second);
 		}
 	private:
 		std::map<HTML_revision, std::pair<std::string, std::string>> dtds;
