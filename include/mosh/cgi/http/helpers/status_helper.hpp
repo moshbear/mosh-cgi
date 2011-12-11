@@ -38,7 +38,7 @@ namespace status_helper {
  *  @return the corresponding status string
  *  @throw std::invalid_argument if the status code is invalid
  */
-string get_string (unsigned st);
+std::string get_string (unsigned st);
 
 }
 

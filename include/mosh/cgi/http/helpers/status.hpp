@@ -43,7 +43,7 @@ namespace status {
 std::string print_status (unsigned st);
 	
 //! Create a helper consisting of Status line generators 
-Helper<charT> helper();
+Helper helper();
 
 }
 

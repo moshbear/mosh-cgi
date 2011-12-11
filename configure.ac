@@ -13,7 +13,6 @@ AC_PROG_LIBTOOL
 BOOST_SMART_PTR
 BOOST_THREADS
 BOOST_UTILITY
-BOOST_SMART_PTR
 
 PKG_CHECK_MODULES([MOSH_FCGI], [mosh_fcgi], , AC_MSG_ERROR([cannot find mosh_fcgi]))
 AC_SUBST([MOSH_FCGI_CFLAGS], [$MOSH_FGCI_CFLAGS])
@@ -38,4 +37,5 @@ AC_SUBST(pkgConfigLibs)
 
 AC_OUTPUT([Makefile \
 	src/Makefile \
-	include/Makefile])
+	include/Makefile \
+	examples/Makefile])

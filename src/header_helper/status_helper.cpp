@@ -165,17 +165,18 @@ namespace status_helper {
  *  @return the corresponding status string
  *  @throw std::invalid_argument if the status code is invalid
  */
-static string get_string (unsigned st) {
+std::string get_string (unsigned st) {
 	unsigned series = st / 100;
 	unsigned sub = st % 100;
 	if (series < 1 || series > 5) {
 		throw std::invalid_argument("status family out of range");
 	}
-	const _generator& g = _generator::instance();
+	_generator& g = _generator::instance();
+	std::string msg;
 	if (sub > g.max(series)) {
 		goto unassigned;
 	}
-	std::string msg = g(series, sub);
+	msg = g(series, sub);
 	if (msg != "") {
 		return msg;
 	}

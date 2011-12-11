@@ -19,7 +19,7 @@
 ****************************************************************************/
 
 #include <string>
-#include <mosh/cgi/http/_/misc.hpp>
+#include <mosh/cgi/http/misc.hpp>
 #include <mosh/fcgi/http/misc.hpp>
 #include <mosh/cgi/bits/namespace.hpp>
 #include <mosh/fcgi/bits/namespace.hpp>
