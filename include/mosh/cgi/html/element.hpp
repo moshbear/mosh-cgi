@@ -39,21 +39,35 @@ namespace html {
 namespace element {
 
 //! Enumeration for encoding type
-enum class Type {
+namespace Type {
+	
+	/* Guide to constants:
+	 * Each value must be a power of 2
+	 */
+
 	//! Encodes an unary <foo /> element; resulting tag will have attributes but no data
-	unary,
+	const unsigned unary = 1 << 0;
 	//! Encodes a binary <foo></foo> element; resulting tag will have both attributes and data
-	binary,
+	const unsigned binary = 1 << 1;
 	//! Encodes a DOCTYPE directive <!FOO >
-	dtd,
+	const unsigned dtd = 1 << 2;
 	//! Encodes a comment <!-- foo -->
-	comment
-};
+	const unsigned comment = 1 << 3;
+	
+	inline void _validate(unsigned t) {
+		if (t < (1 << 0) || t > (1 << 3))
+			goto _throw_;
+		if (__builtin_popcount(t) != 1)
+			goto _throw_;
+		return;
+	_throw_:
+		throw std::invalid_argument("MOSH_CGI::html::element::Type");
+	}		
+}
 
 //! An HTML element
 template <typename charT>
 class Element  {
-	typedef Element<charT> this_type;
 public:
 	//! Typedef for strings
 	typedef typename std::basic_string<charT> string;
@@ -61,24 +75,30 @@ public:
 	typedef typename std::pair<std::string, string> attribute;
 	//! Typedef for attribute lists
 	typedef typename std::map<std::string, string> attr_list;
- 
+private:
+	typedef Element<charT> this_type;
+public:
 	/*! @brief Create a new element with a given name and type
 	 *  @param[in] name_ Element name
 	 *  @param[in] type_ Element type
 	 *  @sa Type
 	 */
-	Element(const std::string& name_, Type type_)
-	: name(name_), type(type_)
-	{ }
+	Element(const std::string& name_, unsigned type_)
+	: type(type_), name(name_)
+	{
+		Type::_validate(type_);
+		printer = &do_print;
+	}
 
 	//! Copy constructor
 	Element(const Element& e)
-	: attributes(e.attributes), data(e.data), name(e.name), type(e.type)
+	: type(e.type), attributes(e.attributes), data(e.data), printer(e.printer), name(e.name)
 	{ }
 
 	//! Move constructor
 	Element(Element&& e)
-	: attributes(std::move(e.attributes)), data(std::move(e.data)), name(std::move(e.name)), type(e.type)
+	: type(e.type), attributes(std::move(e.attributes)), data(std::move(e.data)),
+	  printer(std::move(e.printer)), name(std::move(e.name))
 	{ }
 
 	//! Destructor
@@ -87,20 +107,22 @@ public:
 	//! Assignment operator
 	this_type& operator = (const this_type& e) {
 		if (this != &e) {
+			type = e.type;
 			attributes = e.attributes;
 			data = e.data;
+			printer = e.printer;
 			name = e.name;
-			type = e.type;
 		}
 		return *this;
 	}
 	//! Assignment operator
 	this_type operator = (this_type&& e) {
 		if (this != &e) {
+			type = e.type;
 			attributes = std::move(e.attributes);
 			data = std::move(e.data);
+			printer = std::move(e.printer);
 			name = std::move(e.name);
-			type = e.type;
 		}
 		return *this;
 	}
@@ -242,52 +264,37 @@ public:
 	 *  Renders the element, with attributes and pre-rendered data.
 	 *  @warn No escaping is done.
 	 */
-	virtual operator string() const {
-		std::basic_stringstream<charT> s;
-		s << wide_char<charT>('<');
-		s << wide_string<charT>(name);
-		for (const auto& a : this->attributes) {
-			s << wide_char<charT>(' ');
-			s << wide_string<charT>(a.first);
-			s << wide_char<charT>('=');
-			s << wide_char<charT>('"');
-			s << a.second;
-			s << wide_char<charT>('"');
-		}
-		if (type == Type::unary) {
-			s << wide_char<charT>(' ');
-			s << wide_char<charT>('/');
-		} else {
-			if (type == Type::binary) {
-				s << wide_char<charT>('>');
-			}
-			s << this->data;
-			if (type == Type::binary) {
-				s << wide_char<charT>('<');
-				s << wide_char<charT>('/');
-				s << wide_string<charT>(name);
-			} else if (type == Type::comment) {
-				s << wide_string<charT>("--");
-			}
-		}
-		s << wide_char<charT>('>');
-
-		return s.str();
+	operator string() const {
+		return printer(type, name, attributes, data);
 	}
+
 	//! String cast operator
-	virtual operator const charT* () const {
+	operator const charT* () const {
 		return this->operator string().c_str();
 	}
 protected:
 	//! Default constructor for derived classes
 	Element() { }
+	
+	/*! @brief Type-exposing constructor for derived classes
+	 *  @param[in] type_ Type
+	 *  @sa Type
+	 */
+	Element(unsigned type_)
+	: type(type_)
+	{
+		printer = &do_print;
+	}
+
 
 	/*! @brief A post-insertion hook
 	 * Define in derived classes in order to effect postconditions on insertions
 	 * where the key is of an interesting value.
 	 */
 	virtual void post_insertion_hook(const attribute&) { }
-
+	
+	//! Element type
+	unsigned type;
 	/*! @brief List of attributes.
 	 *  Unused for comment elements.
 	 */
@@ -296,11 +303,47 @@ protected:
 	 *  Unused for unary elements.
 	 */
 	string data;
+	/*! @brief Actual string cast function
+	 *  Vtable isn't working out, so I've decided to use functors instead.
+	 */
+	std::function<string (unsigned, const string&, const attr_list&, const string&)> printer;
 private:
 	//! Element name
 	std::string name;
-	//! Element type
-	Type type;
+	
+	static std::basic_string<charT> do_print(unsigned _tp, const string& _nm,
+						const attr_list& _at, const string& _d) 
+	{
+		std::basic_stringstream<charT> s;
+		s << wide_char<charT>('<');
+		s << wide_string<charT>(_nm);
+		for (const auto& a : _at) {
+			s << wide_char<charT>(' ');
+			s << wide_string<charT>(a.first);
+			s << wide_char<charT>('=');
+			s << wide_char<charT>('"');
+			s << a.second;
+			s << wide_char<charT>('"');
+		}
+		if (_tp == Type::unary) {
+			s << wide_char<charT>(' ');
+			s << wide_char<charT>('/');
+		} else {
+			if (_tp == Type::binary) {
+				s << wide_char<charT>('>');
+			}
+			s << _d;
+			if (_tp == Type::binary) {
+				s << wide_char<charT>('<');
+				s << wide_char<charT>('/');
+				s << wide_string<charT>(_nm);
+			} else if (_tp == Type::comment) {
+				s << wide_string<charT>("--");
+			}
+		}
+		s << wide_char<charT>('>');
+		return s.str();
+	}
 };
 
 /*! @name Concatenators
@@ -418,37 +461,47 @@ public:
 	 *  @param[in] type_ HTML type
 	 *  @sa doctype::HTML_revision
 	 */
-	HTML_begin(doctype::HTML_revision type_ = doctype::HTML_revision::xhtml_10_transitional)
-	: Element<charT>(), type(type_)
+	HTML_begin(unsigned type_ = doctype::HTML_revision::xhtml_10_transitional)
+	: Element<charT>(type_)
 	{
 		if (is_xhtml()) {
 			this->attributes.insert(std::make_pair("xmlns", wide_string<charT>("http://www.w3.org/1999/xhtml")));
 		}
+		this->printer = &do_print;
 	}
 
 	//! Copy constructor
 	HTML_begin(const HTML_begin& b)
-	: Element<charT>(b), type(b.type)
+	: Element<charT>(b)
 	{ }
 
 	//! Move constructor
 	HTML_begin(HTML_begin&& b)
-	: Element<charT>(std::move(b)), type(b.type)
+	: Element<charT>(std::move(b))
 	{ }
 
 	//! Destructor
 	virtual ~HTML_begin() { }
 
-	/*! @brief String cast operator
-	 *  Renders the element, with attributes and pre-rendered data.
-	 *  @warn No escaping is done.
-	 */
-	virtual operator string() const {
+protected:
+	virtual void post_insertion_hook(const attribute& _a) {
+		if (is_xhtml()) {
+			if (_a.first == "lang") { // make use of lang attribute XHTML-conforming
+				this->attributes.insert(std::make_pair("xml:lang", _a.second));
+			}
+		}
+	}
+private:
+	bool is_xhtml() const {
+		return static_cast<bool>(this->type & 0x100);
+	}
+
+	static string do_print(unsigned _tp, const std::string&, const attr_list& _at, const std::string&) {
 		std::basic_stringstream<charT> s;
 		doctype::HTML_doctype_generator<charT> dg;
-		s << dg(type);
+		s << dg(_tp);
 		s << wide_string<charT>("<html");
-		for (const auto& a : this->attributes) {
+		for (const auto& a : _at) {
 			s << wide_char<charT>(' ');
 			s << wide_string<charT>(a.first);
 			s << wide_char<charT>('=');
@@ -461,39 +514,16 @@ public:
 		return s.str();
 	}
 
-protected:
-	virtual void post_insertion_hook(const attribute& _a) {
-		if (is_xhtml()) {
-			if (_a.first == "lang") { // make use of lang attribute XHTML-conforming
-				this->attributes.insert(std::make_pair("xml:lang", _a.second));
-			}
-		}
-	}
-private:
-	doctype::HTML_revision type;
-	bool is_xhtml() const {
-		switch (type) {
-		case doctype::HTML_revision::xhtml_10:
-		case doctype::HTML_revision::xhtml_10_transitional:
-		case doctype::HTML_revision::xhtml_10_frameset:
-		case doctype::HTML_revision::xhtml_11:
-		case doctype::HTML_revision::xhtml_basic_11:
-			return true;
-		default:
-			return false;
-		}
-	}
-
 };
 
 //! This class prints </html>
 template <typename charT>
 struct HTML_end {
-	virtual operator std::basic_string<charT> () const {
+	operator std::basic_string<charT> () const {
 		return wide_string<charT>("</html>");
 	}
 	//! String cast operator
-	virtual operator const charT* () const {
+	operator const charT* () const {
 		return this->operator std::basic_string<charT>().c_str();
 	}
 };
@@ -516,7 +546,10 @@ public:
  	//! Default constructor
 	Body_begin()
 	: Element<charT>()
-	{ }
+	{
+		this->printer = &do_print;
+	}
+
 	//! Copy constructor
 	Body_begin(const Body_begin& b)
 	: Element<charT>(b)
@@ -530,14 +563,14 @@ public:
 	//! Destructor
 	virtual ~Body_begin() { }
 
-	/*! @brief String cast operator
-	 *  Renders the element, with attributes and pre-rendered data.
-	 *  @warn No escaping is done.
-	 */
-	virtual operator string() const {
+protected:
+	virtual void post_insertion_hook(const attribute&) {
+	}
+private:
+	static string do_print(unsigned, const string&, const attr_list& _at, const string&) {
 		std::basic_stringstream<charT> s;
 		s << wide_string<charT>("<body");
-		for (const auto& a : this->attributes) {
+		for (const auto& a : _at) {
 			s << wide_char<charT>(' ');
 			s << wide_string<charT>(a.first);
 			s << wide_char<charT>('=');
@@ -549,20 +582,16 @@ public:
 
 		return s.str();
 	}
-
-protected:
-	virtual void post_insertion_hook(const attribute&) {
-	}
 };
 
 //! This class prints </body>
 template <typename charT>
 struct Body_end {
-	virtual operator std::basic_string<charT> () const {
+	operator std::basic_string<charT> () const {
 		return wide_string<charT>("</body>");
 	}
 	//! String cast operator
-	virtual operator const charT* () const {
+	operator const charT* () const {
 		return this->operator std::basic_string<charT>().c_str();
 	}
 };

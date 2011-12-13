@@ -10,6 +10,8 @@ include $(top_srcdir)/include/headerlist
 INCLUDES = -I$(top_srcdir)/include
 LDADD = $(MOSH_FCGI_LIBS)
 
+CXXFLAGS = -g -ggdb -O0
+
 lib_LTLIBRARIES = libmosh_cgi.la
 
 libmosh_cgi_la_LDFLAGS = -version-info 0:3:0

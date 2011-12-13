@@ -21,6 +21,7 @@
 #define MOSH_CGI_HTTP_HELPERS_HELPER_HPP
 
 #include <string>
+#include <functional>
 #include <mosh/cgi/bits/namespace.hpp>
 
 MOSH_CGI_BEGIN
@@ -29,23 +30,17 @@ namespace http {
 
 //! An interface for header helpers
 struct Helper {
-	//! Unary function, taking an unsigned, returning a std::string
-	std::string (*do_u)(unsigned u);
-	//! Unary function, taking a std::string, returning a std::string
-	std::string (*do_s)(const std::string& s);
-	// Additional fp unaries go here
+	/*! @name Functors
+	 */
+	//@{
+	std::function<std::string (unsigned)> do_u;
+	std::function<std::string (std::string const&)> do_s;
 	
-	//! Binary function, taking an unsigned and a std::string, returning a std::string
-	std::string (*do_u_s)(unsigned u, const std::string& s);
-	//! Binary function, taking a std::string and an unsigned, returning a std::string
-	std::string (*do_s_u)(const std::string& s, unsigned u);
-	//! Binary function, taking two std::strings, returning a std::string
-	std::string (*do_s_s)(const std::string& s1, const std::string& s2);
-	// Additional binaries go here
-	
+	std::function<std::string (unsigned, std::string const&)> do_u_s;
+	std::function<std::string (std::string const&, unsigned)> do_s_u;
+	std::function<std::string (std::string const&, std::string const&)> do_s_s;
+	//@}	
 	Helper()
-	: do_u(nullptr), do_s(nullptr),
-	  do_u_s(nullptr), do_s_u(nullptr), do_s_s(nullptr)
 	{ }
 };
 

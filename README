@@ -1,11 +1,12 @@
 File: README
-V: v0.3.1 2011-12-02 m0shbear
+V: v0.3.2 2011-12-13 m0shbear
 ==
 
 M0shbear's fork of GNU cgicc.
 
 Features added:
 * Templated Unicode support
+* OO Element
 
 Features removed:
 * CGI input handling (use mosh/fcgi for that)

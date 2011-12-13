@@ -36,7 +36,7 @@ namespace content_type {
  *  @return Content-Type: $ctype
  */
 std::string print_ct(const std::string& ctype) {
-	return "Content-Type: " + ctype + "; \r\n";
+	return "Content-Type: " + ctype + "\r\n";
 }
 
 /*! @brief Generate Content-Type header

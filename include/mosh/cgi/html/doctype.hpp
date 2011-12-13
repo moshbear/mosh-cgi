@@ -82,37 +82,73 @@ private:
 };
 
 //! HTML revision
-enum class HTML_revision {
+namespace HTML_revision {
+	
+	/* Guide to constants:
+	 * flags:4 major:4 minor:4
+	 * If major has no alternate versions, then minor = 0.
+	 * Otherwise, main version has minor 1 and all alternates have increasing minor.
+	 * For XHTML, flags[0] is set.
+	 */
+
 	//! HTML 4.01 (Strict)
-	html_4,
+	const unsigned html_4 = 0x11;
 	//! HTML 4.01 Strict
-	html_4_strict = html_4,
+	const unsigned html_4_strict = 0x11;
 	//! HTML 4.01 Frameset
-	html_4_frameset,
+	const unsigned html_4_frameset = 0x12;
 	//! HTML 4.01 Transitional
-	html_4_transitional,
+	const unsigned html_4_transitional = 0x13;
 	//! XHTML 1.0 (Strict)
-	xhtml_10,
+	const unsigned xhtml_10 = 0x121;
 	//! XHTML 1.0 Strict
-	xhtml_10_strict = xhtml_10,
-	//! XHTML 1.0 Transitional
-	xhtml_10_transitional,
+	const unsigned xhtml_10_strict = 0x121;
 	//! XHTML 1.0 Frameset
-	xhtml_10_frameset,
+	const unsigned xhtml_10_frameset = 0x122;
+	//! XHTML 1.0 Transitional
+	const unsigned xhtml_10_transitional = 0x123;
 	//! XHTML 1.1
-	xhtml_11,
+	const unsigned xhtml_11 = 0x130;
 	//! XHTML Basic 1.1
-	xhtml_basic_11,
+	const unsigned xhtml_basic_11 = 0x140;
 	//! HTML 5
-	html_5
-};
+	const unsigned html_5 = 0x50;
+
+	inline void _validate(unsigned hr) {
+		unsigned flg = (hr & 0x0F00) >> 8;
+		unsigned maj = (hr & 0xF0) >> 4;
+		unsigned min = (hr & 0x0F);
+		switch (maj) {
+		case 1: // HTML 4
+			if (flg != 0 || min < 1 || min > 3)
+				goto _throw_;
+			return;
+		case 2: // XHTML 1.0
+			if (flg != 1 || min < 1 || min > 3)
+				goto _throw_;
+			return;
+		case 3: // XHTML 1.1
+		case 4: // XHTML Basic 1.1
+			if (flg != 1 || min != 0)
+				goto _throw_;
+			return;
+		case 5: // HTML 4
+			if (flg != 0 || min != 0)
+				goto _throw_;
+			return;
+		default:;
+		}
+	_throw_:
+		throw std::invalid_argument("MOSH_CGI::html::doctype::HTML_revision");
+	}
+}
 
 //! Singleton doctype generator
 template <typename charT>
 class HTML_doctype_generator
 {
 public:
-	W3C_html_doctype<charT> operator () (HTML_revision hr) const {
+	W3C_html_doctype<charT> operator () (unsigned hr) const {
 
 		return _generator::instance()(hr);
 	}
@@ -144,7 +180,8 @@ private:
 			};
 		}
 		//! Generate a <!DOCTYPE
-		W3C_html_doctype<charT> operator () (HTML_revision hr) const {
+		W3C_html_doctype<charT> operator () (unsigned hr) const {
+			HTML_revision::_validate(hr);
 			const auto d = dtds.find(hr);
 			if (d == dtds.end()) {
 				throw std::logic_error("unmapped doctype");
@@ -153,7 +190,7 @@ private:
 			return W3C_html_doctype<charT>(_d.first, _d.second);
 		}
 	private:
-		std::map<HTML_revision, std::pair<std::string, std::string>> dtds;
+		std::map<unsigned, std::pair<std::string, std::string>> dtds;
 	};
 };
 

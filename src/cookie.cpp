@@ -69,6 +69,7 @@ Cookie::Cookie(std::initializer_list<std::string> string_args,
 		switch (ulong_args.size()) {
 		case 1:
 			max_age = ul_arg[0];
+			break;
 		default:
 			throw std::invalid_argument("ulong_args has an incorrect number of arguments");
 		}
@@ -83,6 +84,7 @@ Cookie::Cookie(std::initializer_list<std::string> string_args,
 			http_only = bool_arg[1];
 		case 1:
 			secure = bool_arg[0];
+			break;
 		default:
 			throw std::invalid_argument("bool_args has an incorrect number of arguments");
 		}
@@ -135,7 +137,7 @@ Cookie::operator std::string () const {
 }
 
 std::initializer_list<unsigned long> Cookie::ulong_args_default = { 0 };
-std::initializer_list<bool> Cookie::bool_args_default = { false, false, true };
+std::initializer_list<bool> Cookie::bool_args_default = { false, true, false };
 
 } // http
 
