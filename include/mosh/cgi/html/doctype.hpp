@@ -1,8 +1,6 @@
-//! @file mosh/cgi/html/doctype/doctype.hpp Class which specifies the DTD of the HTML 4 document
+//! @file mosh/cgi/html/doctype.hpp Class which specifies the DTD of the HTML 4 document
 /* 
- *  Copyright (C) 1996 - 2004 Stephen F. Booth <sbooth@gnu.org>
- *                       2007 Sebastien DIAZ <sebastien.diaz@gmail.com>
- *                       2011 m0shbear
+ *  Copyright (C) 2011 m0shbear
  *
  *  This library is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public

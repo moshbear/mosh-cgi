@@ -225,8 +225,8 @@ public:
 	 *  @param[in] _a attribute
 	 */
 	this_type& operator += (const attribute& _a) {
-		attributes.insert(_a);
-		post_insertion_hook(_a);
+		if (pre_insertion_hook(_a))
+			attributes.insert(_a);
 		return *this;
 	}
 
@@ -235,8 +235,8 @@ public:
 	 */
 	this_type& operator += (std::initializer_list<attribute> _a) {
 		for (const auto& at : _a) {
-			attributes.insert(at);
-			post_insertion_hook(at);
+			if (pre_insertion_hook(at))
+				attributes.insert(at);
 		}
 		return *this;
 	}
@@ -291,7 +291,7 @@ protected:
 	 * Define in derived classes in order to effect postconditions on insertions
 	 * where the key is of an interesting value.
 	 */
-	virtual void post_insertion_hook(const attribute&) { }
+	virtual bool pre_insertion_hook(const attribute&) { return true; }
 	
 	//! Element type
 	unsigned type;
@@ -368,7 +368,7 @@ Element<charT> operator + (const Element<charT>& _e, const typename Element<char
  */
 template <typename charT>
 Element<charT> operator + (Element<charT>&& _e, const typename Element<charT>::attribute& _a) {
-	Element<charT> e(_e);
+	Element<charT> e(std::move(_e));
 	e += _a;
 	return std::move(e);
 }
@@ -390,7 +390,7 @@ Element<charT> operator + (const Element<charT>& _e, std::initializer_list<typen
  */
 template <typename charT>
 Element<charT> operator + (Element<charT>&& _e, std::initializer_list<typename Element<charT>::attribute> _a) {
-	Element<charT> e(_e);
+	Element<charT> e(std::move(_e));
 	e += _a;
 	return std::move(e);
 }
@@ -412,7 +412,7 @@ Element<charT> operator + (const Element<charT>& _e, const std::basic_string<cha
  */
 template <typename charT>
 Element<charT> operator + (Element<charT>&& _e, const std::basic_string<charT>& _v) {
-	Element<charT> e(_e);
+	Element<charT> e(std::move(_e));
 	e += _v;
 	return std::move(e);
 }
@@ -434,7 +434,7 @@ Element<charT> operator + (const Element<charT>& _e, std::initializer_list<std::
  */
 template <typename charT>
 Element<charT> operator + (Element<charT>&& _e, std::initializer_list<std::basic_string<charT>> _v) {
-	Element<charT> e(_e);
+	Element<charT> e(std::move(_e));
 	e += _v;
 	return std::move(e);
 }
@@ -443,8 +443,10 @@ Element<charT> operator + (Element<charT>&& _e, std::initializer_list<std::basic
 
 /*! @brief HTML begin class
  * This class outputs <!DOCTYPE ...><html ...> when cast to string.
- * @note For XHTML, it adds xmlns.
- * @note Data added is ignored
+ * @note For XHTML, it adds xmlns and <?xml ...?>
+ * @note To add attributes to the <?xml ?>, add attributes in the form of { "xml=foo", "bar" }.
+ * @note Data added is ignored.
+ *
  */
 template <typename charT>
 class HTML_begin : public Element<charT> {
@@ -484,22 +486,43 @@ public:
 	virtual ~HTML_begin() { }
 
 protected:
-	virtual void post_insertion_hook(const attribute& _a) {
+	virtual bool pre_insertion_hook(const attribute& _a) {
 		if (is_xhtml()) {
 			if (_a.first == "lang") { // make use of lang attribute XHTML-conforming
 				this->attributes.insert(std::make_pair("xml:lang", _a.second));
 			}
+			if (!_a.first.compare(0, 4, "xml=")) {
+				auto _i = this->xml_attributes.insert(std::make_pair(_a.first.substr(4), _a.second));
+				if (_i.second) {
+					this->data += wide_string<charT>(_a.first.substr(4) + "=\"")
+							+ _a.second + wide_string<charT>("\" ");
+				}
+				return false;
+			}
 		}
+		return true;
 	}
+	//! List of <?xml attributes.
+	attr_list xml_attributes;
+
 private:
 	bool is_xhtml() const {
-		return static_cast<bool>(this->type & 0x100);
+		return is_xhtml(this->type);
 	}
-
-	static string do_print(unsigned _tp, const std::string&, const attr_list& _at, const std::string&) {
+	static bool is_xhtml(unsigned tp) {
+		return static_cast<bool>(tp & 0x100);
+	}
+		
+	
+	static string do_print(unsigned _tp, const std::string&, const attr_list& _at, const std::string& _d) {
 		std::basic_stringstream<charT> s;
+		if (is_xhtml(_tp)) {
+			s << wide_string<charT>("<?xml version=\"1\" ");
+			s << _d;
+			s << wide_string<charT>("?>\r\n");
+		}	
 		doctype::HTML_doctype_generator<charT> dg;
-		s << dg(_tp);
+		s << dg(_tp) << wide_string<charT>("\r\n");
 		s << wide_string<charT>("<html");
 		for (const auto& a : _at) {
 			s << wide_char<charT>(' ');
