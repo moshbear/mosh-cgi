@@ -267,6 +267,20 @@ namespace ws {
 	const Body_begin<wchar_t> body_begin;
 	//! @c wchar_t specialization of Body_end<T>
 	const Body_end<wchar_t> body_end;
+
+//@{
+//! @c wchar_t specialization of P
+std::pair<std::string, std::wstring>
+P(const std::string& s1, const std::wstring& s2) {
+	return element::P(s1, s2);
+}
+//! @c wchar_t specialization of P
+std::pair<std::string, std::wstring>
+P(std::string&& s1, std::wstring&& s2) {
+	return element::P(std::move(s1), std::move(s2));
+}
+//@}
+	
 }
 
 #endif

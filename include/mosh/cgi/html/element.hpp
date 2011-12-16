@@ -640,26 +640,6 @@ std::pair<std::string, std::basic_string<charT>>
 P(std::string&& s1, std::basic_string<charT>&& s2) {
 	return std::make_pair(std::move(s1), std::move(s2));
 }
-//! @c char specialization of P
-std::pair<std::string, std::string>
-SP(const std::string& s1, const std::string& s2) {
-	return P(s1, s2);
-}
-//! @c char specialization of P
-std::pair<std::string, std::string>
-SP(std::string&& s1, std::string&& s2) {
-	return P(std::move(s1), std::move(s2));
-}
-//! @c wchar_t specialization of P
-std::pair<std::string, std::wstring>
-WSP(const std::string& s1, const std::wstring& s2) {
-	return P(s1, s2);
-}
-//! @c wchar_t specialization of P
-std::pair<std::string, std::wstring>
-WSP(std::string&& s1, std::wstring&& s2) {
-	return P(std::move(s1), std::move(s2));
-}
 //@}
 
 }

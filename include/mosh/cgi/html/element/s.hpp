@@ -262,9 +262,22 @@ namespace s {
 	//! @c char specialization of Html_end<T>
 	typedef HTML_end<char> html_end;
 	//! @c char specialization of Body_begin<T>
-	const Body_begin<char> body_begin;
+	typedef Body_begin<char> body_begin;
 	//! @c char specialization of Body_end<T>
-	const Body_end<char> body_end;
+	typedef Body_end<char> body_end;
+
+	//@{
+	//! @c char specialization of P
+	std::pair<std::string, std::string>
+	P(const std::string& s1, const std::string& s2) {
+		return element::P(s1, s2);
+	}
+	//! @c char specialization of P
+	std::pair<std::string, std::string>
+	P(std::string&& s1, std::string&& s2) {
+		return element::P(std::move(s1), std::move(s2));
+	}
+	//@}
 }
 
 #endif
