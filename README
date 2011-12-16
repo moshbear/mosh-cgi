@@ -7,6 +7,9 @@ M0shbear's fork of GNU cgicc.
 Features added:
 * Templated Unicode support
 * OO Element
+* Complete SGML DTD support
+* OO Headers
+* OO Cookie
 
 Features removed:
 * CGI input handling (use mosh/fcgi for that)
