@@ -321,10 +321,10 @@ private:
 		auto _e = data.cend();
 		if (!(*(_e - 2) == '\r' && *(_e - 1) == '\n'))
 			data.append("\r\n");
-		// This is C, not C++
-		// Let assertion failures throw exceptions instead of SIGABRTs
-		if (data.find("\r\n\r\n") != std::string::npos)
-			throw std::logic_error("Caught duplicate \\r\\n");
+		size_t _n;
+		if ((_n = data.find("\r\n\r\n")) != std::string::npos) {
+			data.erase(_n + 2);
+		}
 	}
 			
 };

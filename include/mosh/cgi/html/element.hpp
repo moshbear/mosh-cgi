@@ -26,7 +26,8 @@
 #include <set>
 #include <utility>
 #include <stdexcept>
-#include <mosh/cgi/html/doctype.hpp>
+#include <iostream>
+#include <mosh/cgi/html/html_doctype.hpp>
 #include <mosh/cgi/bits/t_string.hpp>
 #include <mosh/cgi/bits/namespace.hpp>
 
@@ -87,18 +88,17 @@ public:
 	: type(type_), name(name_)
 	{
 		Type::_validate(type_);
-		printer = &do_print;
 	}
 
 	//! Copy constructor
-	Element(const Element& e)
-	: type(e.type), attributes(e.attributes), data(e.data), printer(e.printer), name(e.name)
+	Element(const this_type& e)
+	: type(e.type), attributes(e.attributes), data(e.data), name(e.name)
 	{ }
 
 	//! Move constructor
-	Element(Element&& e)
+	Element(this_type&& e)
 	: type(e.type), attributes(std::move(e.attributes)), data(std::move(e.data)),
-	  printer(std::move(e.printer)), name(std::move(e.name))
+	  name(std::move(e.name))
 	{ }
 
 	//! Destructor
@@ -110,7 +110,6 @@ public:
 			type = e.type;
 			attributes = e.attributes;
 			data = e.data;
-			printer = e.printer;
 			name = e.name;
 		}
 		return *this;
@@ -121,7 +120,6 @@ public:
 			type = e.type;
 			attributes = std::move(e.attributes);
 			data = std::move(e.data);
-			printer = std::move(e.printer);
 			name = std::move(e.name);
 		}
 		return *this;
@@ -225,7 +223,7 @@ public:
 	 *  @param[in] _a attribute
 	 */
 	this_type& operator += (const attribute& _a) {
-		if (pre_insertion_hook(_a))
+		if (this->attribute_addition_hook(_a))
 			attributes.insert(_a);
 		return *this;
 	}
@@ -235,7 +233,7 @@ public:
 	 */
 	this_type& operator += (std::initializer_list<attribute> _a) {
 		for (const auto& at : _a) {
-			if (pre_insertion_hook(at))
+			if (this->attribute_addition_hook(at))
 				attributes.insert(at);
 		}
 		return *this;
@@ -245,7 +243,8 @@ public:
 	 * @param[in] _v value
 	 */
 	this_type& operator += (const string& _v) {
-		data += _v;
+		if (this->data_addition_hook(_v))
+			data += _v;
 		return *this;
 	}
 	
@@ -264,12 +263,40 @@ public:
 	 *  Renders the element, with attributes and pre-rendered data.
 	 *  @warn No escaping is done.
 	 */
-	operator string() const {
-		return printer(type, name, attributes, data);
+	virtual operator string() const {
+		std::basic_stringstream<charT> s;
+		s << wide_char<charT>('<');
+		s << wide_string<charT>(this->name);
+		for (const auto& a : this->attributes) {
+			s << wide_char<charT>(' ');
+			s << wide_string<charT>(a.first);
+			s << wide_char<charT>('=');
+			s << wide_char<charT>('"');
+			s << a.second;
+			s << wide_char<charT>('"');
+		}
+		if (this->type == Type::unary) {
+			s << wide_char<charT>(' ');
+			s << wide_char<charT>('/');
+		} else {
+			if (this->type == Type::binary) {
+				s << wide_char<charT>('>');
+			}
+			s << this->data;		
+			if (this->type == Type::binary) {
+				s << wide_char<charT>('<');
+				s << wide_char<charT>('/');
+				s << wide_string<charT>(this->name);
+			} else if (this->type == Type::comment) {
+				s << wide_string<charT>("--");
+			}
+		}
+		s << wide_char<charT>('>');
+		return s.str();
 	}
 
 	//! String cast operator
-	operator const charT* () const {
+	virtual operator const charT* () const {
 		return this->operator string().c_str();
 	}
 protected:
@@ -282,17 +309,24 @@ protected:
 	 */
 	Element(unsigned type_)
 	: type(type_)
-	{
-		printer = &do_print;
-	}
+	{ }
 
 
-	/*! @brief A post-insertion hook
-	 * Define in derived classes in order to effect postconditions on insertions
-	 * where the key is of an interesting value.
+	/*! @brief Hook for attribute addition 
+	 *  To perform custon behavior (e.g. value checking) on attribute addition,
+	 *  override this function in derived classes.
+	 *  @retval @c true Add the attribute to the list
+	 *  @retval @c false Don't add the attribute to the list
 	 */
-	virtual bool pre_insertion_hook(const attribute&) { return true; }
-	
+	virtual bool attribute_addition_hook(const attribute&) { return true; }
+	/*! @brief Hook for data addition 
+	 *  To perform custon behavior (e.g. value checking) on data addition,
+	 *  override this function in derived classes.
+	 *  @retval @c true Add the string to data
+	 *  @retval @c false Don't add the string to data
+	 */
+	virtual bool data_addition_hook(const string&) { return true; }
+
 	//! Element type
 	unsigned type;
 	/*! @brief List of attributes.
@@ -303,47 +337,10 @@ protected:
 	 *  Unused for unary elements.
 	 */
 	string data;
-	/*! @brief Actual string cast function
-	 *  Vtable isn't working out, so I've decided to use functors instead.
-	 */
-	std::function<string (unsigned, const string&, const attr_list&, const string&)> printer;
 private:
 	//! Element name
 	std::string name;
 	
-	static std::basic_string<charT> do_print(unsigned _tp, const string& _nm,
-						const attr_list& _at, const string& _d) 
-	{
-		std::basic_stringstream<charT> s;
-		s << wide_char<charT>('<');
-		s << wide_string<charT>(_nm);
-		for (const auto& a : _at) {
-			s << wide_char<charT>(' ');
-			s << wide_string<charT>(a.first);
-			s << wide_char<charT>('=');
-			s << wide_char<charT>('"');
-			s << a.second;
-			s << wide_char<charT>('"');
-		}
-		if (_tp == Type::unary) {
-			s << wide_char<charT>(' ');
-			s << wide_char<charT>('/');
-		} else {
-			if (_tp == Type::binary) {
-				s << wide_char<charT>('>');
-			}
-			s << _d;
-			if (_tp == Type::binary) {
-				s << wide_char<charT>('<');
-				s << wide_char<charT>('/');
-				s << wide_string<charT>(_nm);
-			} else if (_tp == Type::comment) {
-				s << wide_string<charT>("--");
-			}
-		}
-		s << wide_char<charT>('>');
-		return s.str();
-	}
 };
 
 /*! @name Concatenators
@@ -445,86 +442,61 @@ Element<charT> operator + (Element<charT>&& _e, std::initializer_list<std::basic
  * This class outputs <!DOCTYPE ...><html ...> when cast to string.
  * @note For XHTML, it adds xmlns and <?xml ...?>
  * @note To add attributes to the <?xml ?>, add attributes in the form of { "xml=foo", "bar" }.
- * @note Data added is ignored.
+ * @note Data added is assumed to be valid SGML DTD
  *
  */
 template <typename charT>
-class HTML_begin : public Element<charT> {
+class HTML_begin : public virtual Element<charT> {
 	typedef HTML_begin<charT> this_type;
+	typedef Element<charT> base_type;
 public:
 	//! Typedef for strings
-	typedef typename std::basic_string<charT> string;
+	typedef typename base_type::string string;
 	//! Typedef for attributes
-	typedef typename std::pair<std::string, string> attribute;
+	typedef typename base_type::attribute attribute;
 	//! Typedef for attribute lists
-	typedef typename std::map<std::string, string> attr_list;
+	typedef typename base_type::attr_list attr_list;
  
 	/*! @brief Create a new HTML start with a given type
 	 *  @param[in] type_ HTML type
 	 *  @sa doctype::HTML_revision
 	 */
-	HTML_begin(unsigned type_ = doctype::HTML_revision::xhtml_10_transitional)
-	: Element<charT>(type_)
+	HTML_begin(unsigned type_ = html_doctype::html_revision::xhtml_10_strict)
+	: Element<charT>(type_) 
 	{
+		this->doctype = html_doctype::html_doctype(this->type);
+
 		if (is_xhtml()) {
 			this->attributes.insert(std::make_pair("xmlns", wide_string<charT>("http://www.w3.org/1999/xhtml")));
 		}
-		this->printer = &do_print;
 	}
 
 	//! Copy constructor
-	HTML_begin(const HTML_begin& b)
-	: Element<charT>(b)
+	HTML_begin(const HTML_begin<charT>& b)
+	: Element<charT>(b), doctype(b.doctype)
 	{ }
 
 	//! Move constructor
-	HTML_begin(HTML_begin&& b)
-	: Element<charT>(std::move(b))
+	HTML_begin(HTML_begin<charT>&& b)
+	: Element<charT>(std::move(b)), doctype(std::move(b.doctype))
 	{ }
 
 	//! Destructor
 	virtual ~HTML_begin() { }
 
-protected:
-	virtual bool pre_insertion_hook(const attribute& _a) {
-		if (is_xhtml()) {
-			if (_a.first == "lang") { // make use of lang attribute XHTML-conforming
-				this->attributes.insert(std::make_pair("xml:lang", _a.second));
-			}
-			if (!_a.first.compare(0, 4, "xml=")) {
-				auto _i = this->xml_attributes.insert(std::make_pair(_a.first.substr(4), _a.second));
-				if (_i.second) {
-					this->data += wide_string<charT>(_a.first.substr(4) + "=\"")
-							+ _a.second + wide_string<charT>("\" ");
-				}
-				return false;
-			}
-		}
-		return true;
-	}
-	//! List of <?xml attributes.
-	attr_list xml_attributes;
-
-private:
-	bool is_xhtml() const {
-		return is_xhtml(this->type);
-	}
-	static bool is_xhtml(unsigned tp) {
-		return static_cast<bool>(tp & 0x100);
-	}
-		
-	
-	static string do_print(unsigned _tp, const std::string&, const attr_list& _at, const std::string& _d) {
+	virtual operator string () const {
 		std::basic_stringstream<charT> s;
-		if (is_xhtml(_tp)) {
+		if (is_xhtml(this->type)) {
 			s << wide_string<charT>("<?xml version=\"1\" ");
-			s << _d;
+			for (const auto& a : this->xml_attibutes) {
+				s << wide_string<charT>(a.first.substr(4) + "=\"");
+				s << a.second + wide_string<charT>("\" ");
+			}
 			s << wide_string<charT>("?>\r\n");
 		}	
-		doctype::HTML_doctype_generator<charT> dg;
-		s << dg(_tp) << wide_string<charT>("\r\n");
+		s << this->doctype << wide_string<charT>("\r\n");
 		s << wide_string<charT>("<html");
-		for (const auto& a : _at) {
+		for (const auto& a : this->attributes) {
 			s << wide_char<charT>(' ');
 			s << wide_string<charT>(a.first);
 			s << wide_char<charT>('=');
@@ -535,6 +507,35 @@ private:
 		s << wide_char<charT>('>');
 
 		return s.str();
+	}	
+protected:
+	virtual bool attribute_addition_hook(const attribute& _a) {
+		std::cerr << is_xhtml() << " (" << _a.first.c_str() << ", " << _a.second.c_str() << ")\n";
+		if (is_xhtml()) {
+			if (_a.first == "lang") { // make use of lang attribute XHTML-conforming
+				this->attributes.insert(std::make_pair("xml:lang", _a.second));
+			}
+			if (!_a.first.compare(0, 4, "xml=")) {
+				auto _i = this->xml_attributes.insert(std::make_pair(_a.first.substr(4), _a.second));
+				return false;
+			}
+		}
+		return true;
+	}
+	virtual bool data_addition_hook(const string& _s) {
+		doctype += _s;
+		return false;
+	}
+
+	//! List of <?xml attributes.
+	attr_list xml_attributes;
+
+	//! Doctype
+	sgml_doctype::Doctype_declaration<charT> doctype;
+private:
+	bool is_xhtml() const {
+		using namespace html_doctype::html_revision;
+		return get_family(this->type) == Family::xhtml;
 	}
 
 };
@@ -542,7 +543,7 @@ private:
 //! This class prints </html>
 template <typename charT>
 struct HTML_end {
-	operator std::basic_string<charT> () const {
+	virtual operator std::basic_string<charT> () const {
 		return wide_string<charT>("</html>");
 	}
 	//! String cast operator
@@ -553,7 +554,7 @@ struct HTML_end {
 
 /*! @brief body begin class
  * This class outputs <body ...> when cast to string.
- * @note Data added is ignored
+ * @note Data added is discarded
  */
 template <typename charT>
 class Body_begin : public Element<charT> {
@@ -569,31 +570,25 @@ public:
  	//! Default constructor
 	Body_begin()
 	: Element<charT>()
-	{
-		this->printer = &do_print;
-	}
+	{ }
 
 	//! Copy constructor
-	Body_begin(const Body_begin& b)
+	Body_begin(const this_type& b)
 	: Element<charT>(b)
 	{ }
 
 	//! Move constructor
-	Body_begin(Body_begin&& b)
+	Body_begin(this_type&& b)
 	: Element<charT>(std::move(b))
 	{ }
 
 	//! Destructor
 	virtual ~Body_begin() { }
 
-protected:
-	virtual void post_insertion_hook(const attribute&) {
-	}
-private:
-	static string do_print(unsigned, const string&, const attr_list& _at, const string&) {
+	virtual operator string () const {
 		std::basic_stringstream<charT> s;
 		s << wide_string<charT>("<body");
-		for (const auto& a : _at) {
+		for (const auto& a : this->attributes) {
 			s << wide_char<charT>(' ');
 			s << wide_string<charT>(a.first);
 			s << wide_char<charT>('=');
@@ -605,12 +600,16 @@ private:
 
 		return s.str();
 	}
+
+protected:
+	// Don't append data
+	virtual bool data_addition_hook(const string&) { return false; }
 };
 
 //! This class prints </body>
 template <typename charT>
 struct Body_end {
-	operator std::basic_string<charT> () const {
+	virtual operator std::basic_string<charT> () const {
 		return wide_string<charT>("</body>");
 	}
 	//! String cast operator

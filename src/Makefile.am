@@ -18,6 +18,7 @@ libmosh_cgi_la_LDFLAGS = -version-info 0:3:0
 
 libmosh_cgi_la_SOURCES = $(HEADER_LIST) \
 	cookie.cpp \
+	html_doctype.cpp \
 	http_misc.cpp \
 	header_helper/content_type.cpp \
 	header_helper/redirect.cpp \

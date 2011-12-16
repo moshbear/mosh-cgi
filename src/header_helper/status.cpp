@@ -18,6 +18,7 @@
  */
 
 #include <string>
+#include <sstream>
 #include <mosh/cgi/http/helpers/helper.hpp>
 #include <mosh/cgi/http/helpers/status_helper.hpp>
 #include <mosh/cgi/http/helpers/status.hpp>
@@ -38,7 +39,12 @@ namespace status {
  *  @sa status_helper
  */
 std::string print_status (unsigned st) {
-	return "Status: " + status_helper::get_string(st) + "\r\n";
+	std::stringstream ss;
+	ss << "Status: ";
+	ss << st;
+	ss << " " + status_helper::get_string(st);
+	ss << "\r\n";
+	return ss.str();
 }
 	
 //! Create a helper consisting of status line generators 
