@@ -31,236 +31,236 @@ namespace ws {
 	//! @c wchar_t specialization of Element<T>
 	typedef element::Element<wchar_t> Element;
 	//! <a>
-	const Element a ("a", Type::binary);
+	const Element a (Type::binary, "a");
 	//! <abbr>
-	const Element abbr ("abbr", Type::binary);
+	const Element abbr (Type::binary, "abbr");
 	//! <address>
-	const Element address ("address", Type::binary);
+	const Element address (Type::binary, "address");
 	//! <area>
-	const Element area ("area", Type::unary);
+	const Element area (Type::unary, "area");
 	//! <article> (HTML 5)
-	const Element article ("article", Type::binary);
+	const Element article (Type::binary, "article");
 	//! <aside> (HTML 5)
-	const Element aside ("aside", Type::binary);
+	const Element aside (Type::binary, "aside");
 	//! <audio> (HTML 5)
-	const Element audio ("audio", Type::binary);
+	const Element audio (Type::binary, "audio");
 	//! <b>
-	const Element b ("b", Type::binary);
+	const Element b (Type::binary, "b");
 	//! <base>
-	const Element base ("base", Type::unary);
+	const Element base (Type::unary, "base");
 	//! <bdi> (HTML 5)
-	const Element bdi ("bdi", Type::binary);
+	const Element bdi (Type::binary, "bdi");
 	//! <bdo>
-	const Element bdo ("bdo", Type::binary);
+	const Element bdo (Type::binary, "bdo");
 	//! <big> (not in HTML 5)
-	const Element big ("big", Type::binary);
+	const Element big (Type::binary, "big");
 	//! <blockquote>
-	const Element blockquote ("blockquote", Type::binary);
+	const Element blockquote (Type::binary, "blockquote");
 	//! <body>
-	const Element body ("body", Type::binary);
+	const Element body (Type::binary, "body");
 	//! <br>
-	const Element br ("br", Type::unary);
+	const Element br (Type::unary, "br");
 	//! <button>
-	const Element button ("button", Type::binary);
+	const Element button (Type::binary, "button");
 	//! <canvas> (HTML 5)
-	const Element canvas ("canvas", Type::binary);
+	const Element canvas (Type::binary, "canvas");
 	//! <caption>
-	const Element caption ("caption", Type::binary);
+	const Element caption (Type::binary, "caption");
 	//! <cite>
-	const Element cite ("cite", Type::binary);
+	const Element cite (Type::binary, "cite");
 	//! <code>
-	const Element code ("code", Type::binary);
+	const Element code (Type::binary, "code");
 	//! <col>
-	const Element col ("col", Type::unary);
+	const Element col (Type::unary, "col");
 	//! <colgroup>
-	const Element colgroup ("colgroup", Type::binary);
+	const Element colgroup (Type::binary, "colgroup");
 	//! <command> (HTML 5)
-	const Element command ("command", Type::binary);
+	const Element command (Type::binary, "command");
 	//! <datalist> (HTML 5)
-	const Element datalist ("datalist", Type::binary);
+	const Element datalist (Type::binary, "datalist");
 	//! <dd>
-	const Element dd ("dd", Type::binary);
+	const Element dd (Type::binary, "dd");
 	//! <del>
-	const Element del ("del", Type::binary);
+	const Element del (Type::binary, "del");
 	//! <details> (HTML 5)
-	const Element details ("details", Type::binary);
+	const Element details (Type::binary, "details");
 	//! <dfn>
-	const Element dfn ("dfn", Type::binary);
+	const Element dfn (Type::binary, "dfn");
 	//! <div>
-	const Element div ("div", Type::binary);
+	const Element div (Type::binary, "div");
 	//! <dl>
-	const Element dl ("dl", Type::binary);
+	const Element dl (Type::binary, "dl");
 	//! <dt>
-	const Element dt ("dt", Type::binary);
+	const Element dt (Type::binary, "dt");
 	//! <em>
-	const Element em ("em", Type::binary);
+	const Element em (Type::binary, "em");
 	//! <embed> (HTML 5)
-	const Element embed ("embed", Type::unary);
+	const Element embed (Type::unary, "embed");
 	//! <fieldset>
-	const Element fieldset ("fieldset", Type::binary);
+	const Element fieldset (Type::binary, "fieldset");
 	//! <figcaption> (HTML 5)
-	const Element figcaption ("figcaption", Type::binary);
+	const Element figcaption (Type::binary, "figcaption");
 	//! <figure> (HTML 5)
-	const Element figure ("figure", Type::binary);
+	const Element figure (Type::binary, "figure");
 	//! <footer> (HTML 5)
-	const Element footer ("footer", Type::binary);
+	const Element footer (Type::binary, "footer");
 	//! <form>
-	const Element form ("form", Type::binary);
+	const Element form (Type::binary, "form");
 	//! <frame> (Frameset DTDs only)
-	const Element frame ("frame", Type::unary);
+	const Element frame (Type::unary, "frame");
 	//! <frameset> (Frameset DTDs only)
-	const Element frameset ("frameset", Type::binary);
+	const Element frameset (Type::binary, "frameset");
 	//! <h1>
-	const Element h1 ("h1", Type::binary);
+	const Element h1 (Type::binary, "h1");
 	//! <h2>
-	const Element h2 ("h2", Type::binary);
+	const Element h2 (Type::binary, "h2");
 	//! <h3>
-	const Element h3 ("h3", Type::binary);
+	const Element h3 (Type::binary, "h3");
 	//! <h4>
-	const Element h4 ("h4", Type::binary);
+	const Element h4 (Type::binary, "h4");
 	//! <h5>
-	const Element h5 ("h5", Type::binary);
+	const Element h5 (Type::binary, "h5");
 	//! <h6>
-	const Element h6 ("h6", Type::binary);
+	const Element h6 (Type::binary, "h6");
 	//! <head>
-	const Element head ("head", Type::binary);
+	const Element head (Type::binary, "head");
 	//! <header> (HTML 5)
-	const Element header ("header", Type::binary);
+	const Element header (Type::binary, "header");
 	//! <hgroup> (HTML 5)
-	const Element hgroup ("hgroup", Type::binary);
+	const Element hgroup (Type::binary, "hgroup");
 	//! <hr>
-	const Element hr ("hr", Type::unary);
+	const Element hr (Type::unary, "hr");
 	//! <html>
-	const Element html ("html", Type::binary);
+	const Element html (Type::binary, "html");
 	//! <i>
-	const Element i ("i", Type::binary);
+	const Element i (Type::binary, "i");
 	//! <iframe> (Frameset DTDs only / HTML 5)
-	const Element iframe ("iframe", Type::binary);
+	const Element iframe (Type::binary, "iframe");
 	//! <img>
-	const Element img ("img", Type::unary);
+	const Element img (Type::unary, "img");
 	//! <input>
-	const Element input ("input", Type::unary);
+	const Element input (Type::unary, "input");
 	//! <ins>
-	const Element ins ("ins", Type::binary);
+	const Element ins (Type::binary, "ins");
 	//! <keygen> (HTML 5)
-	const Element keygen ("keygen", Type::unary);
+	const Element keygen (Type::unary, "keygen");
 	//! <kbd>
-	const Element kbd ("kbd", Type::binary);
+	const Element kbd (Type::binary, "kbd");
 	//! <label>
-	const Element label ("label", Type::binary);
+	const Element label (Type::binary, "label");
 	//! <legend>
-	const Element legend ("legend", Type::binary);
+	const Element legend (Type::binary, "legend");
 	//! <li>
-	const Element li ("li", Type::binary);
+	const Element li (Type::binary, "li");
 	//! <link>
-	const Element link ("link", Type::unary);
+	const Element link (Type::unary, "link");
 	//! <mark> (HTML 5)
-	const Element mark ("mark", Type::binary);
+	const Element mark (Type::binary, "mark");
 	//! <menu>
-	const Element menu ("menu", Type::binary);
+	const Element menu (Type::binary, "menu");
 	//! <meta>
-	const Element meta ("meta", Type::unary);
+	const Element meta (Type::unary, "meta");
 	//! <meter> (HTML 5)
-	const Element meter ("meter", Type::binary);
+	const Element meter (Type::binary, "meter");
 	//! <nav> (HTML 5)
-	const Element nav ("nav", Type::binary);
+	const Element nav (Type::binary, "nav");
 	//! <noframes> (Frameset DTDs only)
-	const Element noframes ("noframes", Type::binary);
+	const Element noframes (Type::binary, "noframes");
 	//! <noscript>
-	const Element noscript ("noscript", Type::binary);
+	const Element noscript (Type::binary, "noscript");
 	//! <object>
-	const Element object ("object", Type::binary);
+	const Element object (Type::binary, "object");
 	//! <ol>
-	const Element ol ("ol", Type::binary);
+	const Element ol (Type::binary, "ol");
 	//! <optgroup>
-	const Element optgroup ("optgroup", Type::binary);
+	const Element optgroup (Type::binary, "optgroup");
 	//! <option>
-	const Element option ("option", Type::binary);
+	const Element option (Type::binary, "option");
 	//! <output> (HTML 5)
-	const Element output ("output", Type::binary);
+	const Element output (Type::binary, "output");
 	//! <p>
-	const Element p ("p", Type::binary);
+	const Element p (Type::binary, "p");
 	//! <param>
-	const Element param ("param", Type::unary);
+	const Element param (Type::unary, "param");
 	//! <pre>
-	const Element pre ("pre", Type::binary);
+	const Element pre (Type::binary, "pre");
 	//! <progress> (HTML 5)
-	const Element progress ("progress", Type::binary);
+	const Element progress (Type::binary, "progress");
 	//! <q>
-	const Element q ("q", Type::binary);
+	const Element q (Type::binary, "q");
 	//! <rb> (XHTML 1.1 Ruby)
-	const Element rb ("rb", Type::binary);
+	const Element rb (Type::binary, "rb");
 	//! <rb> (XHTML 1.1 Ruby)
-	const Element rbc ("rbc", Type::binary);
+	const Element rbc (Type::binary, "rbc");
 	//! <rp> (XHTML 1.1 / HTML 5 Ruby)
-	const Element rp ("rp", Type::binary);
+	const Element rp (Type::binary, "rp");
 	//! <rt> (XHTML 1.1 / HTML 5 Ruby)
-	const Element rt ("rt", Type::binary);
+	const Element rt (Type::binary, "rt");
 	//! <rtc> (XHTML 1.1 Ruby)
-	const Element rtc ("rtc", Type::binary);
+	const Element rtc (Type::binary, "rtc");
 	//! <ruby> (XHTML 1.1 / HTML 5 Ruby)
-	const Element ruby ("ruby", Type::binary);
+	const Element ruby (Type::binary, "ruby");
 	//! <s>
-	const Element s  ("s", Type::binary);
+	const Element s  (Type::binary, "s");
 	//! <samp>
-	const Element samp ("samp", Type::binary);
+	const Element samp (Type::binary, "samp");
 	//! <script>
-	const Element script ("script", Type::binary);
+	const Element script (Type::binary, "script");
 	//! <section> (HTML 5)
-	const Element section ("section", Type::binary); 
+	const Element section (Type::binary, "section"); 
 	//! <select>
-	const Element select ("select", Type::binary);
+	const Element select (Type::binary, "select");
 	//! <small>
-	const Element small ("small", Type::binary);
+	const Element small (Type::binary, "small");
 	//! <source> (HTML 5)
-	const Element source ("source", Type::binary); 
+	const Element source (Type::binary, "source"); 
 	//! <span>
-	const Element span ("span", Type::binary);
+	const Element span (Type::binary, "span");
 	//! <strong>
-	const Element strong ("strong", Type::binary);
+	const Element strong (Type::binary, "strong");
 	//! <style>
-	const Element style ("style", Type::binary);
+	const Element style (Type::binary, "style");
 	//! <sub>
-	const Element sub ("sub", Type::binary);
+	const Element sub (Type::binary, "sub");
 	//! <summary> (HTML 5)
-	const Element summary ("summary", Type::binary); 
+	const Element summary (Type::binary, "summary"); 
 	//! <sup>
-	const Element sup ("sup", Type::binary);
+	const Element sup (Type::binary, "sup");
 	//! <table>
-	const Element table ("table", Type::binary);
+	const Element table (Type::binary, "table");
 	//! <tbody>
-	const Element tbody ("tbody", Type::binary);
+	const Element tbody (Type::binary, "tbody");
 	//! <td>
-	const Element td ("td", Type::binary);
+	const Element td (Type::binary, "td");
 	//! <textarea>
-	const Element textarea ("textarea", Type::binary);
+	const Element textarea (Type::binary, "textarea");
 	//! <tfoot>
-	const Element tfoot ("tfoot", Type::binary);
+	const Element tfoot (Type::binary, "tfoot");
 	//! <th>
-	const Element th ("th", Type::binary);
+	const Element th (Type::binary, "th");
 	//! <thead>
-	const Element thead ("thread", Type::binary);
+	const Element thead (Type::binary, "thread");
 	//! <time> (HTML 5)
-	const Element time ("time", Type::binary);
+	const Element time (Type::binary, "time");
 	//! <title>
-	const Element title ("title", Type::binary);
+	const Element title (Type::binary, "title");
 	//! <tr>
-	const Element tr ("tr", Type::binary);
+	const Element tr (Type::binary, "tr");
 	//! <track> (HTML 5)
-	const Element track ("track", Type::unary);
+	const Element track (Type::unary, "track");
 	//! <tt> (not in HTML 5)
-	const Element tt ("tt", Type::binary);
+	const Element tt (Type::binary, "tt");
 	//! <ul> 
-	const Element ul ("ul", Type::binary);
+	const Element ul (Type::binary, "ul");
 	//! <var>
-	const Element var ("var", Type::binary);	
+	const Element var (Type::binary, "var");	
 	//! <video> (HTML 5)
-	const Element video ("video", Type::binary);
+	const Element video (Type::binary, "video");
 	//!  <wbr> (HTML 5)
-	const Element wbr ("wbr", Type::binary); 
+	const Element wbr (Type::binary, "wbr"); 
 	
 	//! <!-- ... -->
-	const Element comment ("!--", Type::comment);
+	const Element comment (Type::comment, "!--");
 	
 	//! @c wchar_t specialization of Html_begin<T>
 	typedef element::HTML_begin<wchar_t> html_begin;

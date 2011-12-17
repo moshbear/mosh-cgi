@@ -85,7 +85,7 @@ public:
 	 *  @param[in] type_ Element type
 	 *  @sa Type
 	 */
-	Element(const std::string& name_, unsigned type_)
+	Element(unsigned type_, const std::string& name_)
 	: type(type_), name(name_), attributes(), data()
 	{
 		Type::_validate(type_);
@@ -350,8 +350,8 @@ protected:
 //@{
 template <typename charT, typename T>
 typename std::enable_if<std::is_base_of<Element<charT>, T>::value, T>::type
-operator + (T const& e1, T const& e2) {
-	T e(e1);
+operator + (T&& e1, T&& e2) {
+	T e(std::forward<T>(e1));
 	e += static_cast<std::basic_string<charT>>(e2);
 	return e;
 }
@@ -387,13 +387,13 @@ operator + (T&& _e, const typename Element<charT>::attribute& _a) {
 	e += _a;
 	return std::move(e);
 }
-
+#if 0
 template <typename charT, typename T>
 typename std::enable_if<std::is_base_of<Element<charT>, T>::value, T>::type
 operator + (const typename Element<charT>::attribute& _a, T&& _e) {
 	return operator + (std::forward<T>(_e), _a);
 }
-
+#endif
 /*! @brief Concatenate attribute(s).
  *  @param[in] _e element
  *  @param[in] _a {}-list of attributes
@@ -417,13 +417,13 @@ operator + (T&& _e, std::initializer_list<typename Element<charT>::attribute> _a
 	e += _a;
 	return std::move(e);
 }
-
+#if 0
 template <typename charT, typename T>
 typename std::enable_if<std::is_base_of<Element<charT>, T>::value, T>::type
 operator + (std::initializer_list<typename Element<charT>::attribute> _a, T&& _e) {
 	return operator + (std::forward<T>(_e), _a);
 }
-
+#endif
 /*! @brief Concatenate a value.
  *  @param[in] _e element 
  *  @param[in] _v value
@@ -447,13 +447,13 @@ operator + (T&& _e, const std::basic_string<charT>& _v) {
 	e += _v;
 	return std::move(e);
 }
-	
+#if 0	
 template <typename charT, typename T>
 typename std::enable_if<std::is_base_of<Element<charT>, T>::value, T>::type
 operator + (std::basic_string<charT> const& _v, T&& _e) {
 	return operator + (std::forward<T>(_e), _v);
 }
-
+#endif
 /*! @brief Concatenate value(s).
  *  @param[in] _e element
  *  @param[in] _v {}-list of values
@@ -477,12 +477,13 @@ operator + (T&& _e, std::initializer_list<std::basic_string<charT>> _v) {
 	e += _v;
 	return std::move(e);
 }
-
+#if 0
 template <typename charT, typename T>
 typename std::enable_if<std::is_base_of<Element<charT>, T>::value, T>::type
 operator + (std::initializer_list<std::basic_string<charT>> _v, T&& _e) {
 	return operator + (std::forward<T>(_e), _v);
 }
+#endif
 
 //@}
 
