@@ -1,7 +1,6 @@
 /*!  @file examples/test.cpp
  *   @brief A sanity check for the HTML generator subsystem.
  */
- *
 /*
  *  Copyright (C) 2011 m0shbear
  *
@@ -20,12 +19,6 @@
  *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110, USA
  */
 
-#include <string>
-#include <vector>
-#include <sstream>
-#include <stdexcept>
-
-#include <string>
 #include <iostream>
 
 #include <mosh/cgi/html/element.hpp>

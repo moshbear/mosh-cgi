@@ -20,8 +20,8 @@
 #ifndef MOSH_CGI_HTML_ELEMENT_HPP
 #define MOSH_CGI_HTML_ELEMENT_HPP
 
-#include <sstream>
 #include <string>
+#include <sstream>
 #include <map>
 #include <set>
 #include <utility>
