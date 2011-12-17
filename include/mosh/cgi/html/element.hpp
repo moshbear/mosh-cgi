@@ -26,7 +26,8 @@
 #include <set>
 #include <utility>
 #include <stdexcept>
-#include <iostream>
+#include <ostream>
+#include <type_traits>
 #include <mosh/cgi/html/html_doctype.hpp>
 #include <mosh/cgi/bits/t_string.hpp>
 #include <mosh/cgi/bits/namespace.hpp>
@@ -85,20 +86,20 @@ public:
 	 *  @sa Type
 	 */
 	Element(const std::string& name_, unsigned type_)
-	: type(type_), name(name_)
+	: type(type_), name(name_), attributes(), data()
 	{
 		Type::_validate(type_);
 	}
 
 	//! Copy constructor
 	Element(const this_type& e)
-	: type(e.type), attributes(e.attributes), data(e.data), name(e.name)
+	: type(e.type), name(e.name), attributes(e.attributes), data(e.data)
 	{ }
 
 	//! Move constructor
 	Element(this_type&& e)
-	: type(e.type), attributes(std::move(e.attributes)), data(std::move(e.data)),
-	  name(std::move(e.name))
+	: type(e.type), name(std::move(e.name)), attributes(std::move(e.attributes)),
+	  data(std::move(e.data))
 	{ }
 
 	//! Destructor
@@ -295,20 +296,18 @@ public:
 		return s.str();
 	}
 
-	//! String cast operator
-	virtual operator const charT* () const {
-		return this->operator string().c_str();
-	}
 protected:
 	//! Default constructor for derived classes
-	Element() { }
+	Element()
+	: type(0), name(), attributes(), data()
+	{ }
 	
 	/*! @brief Type-exposing constructor for derived classes
 	 *  @param[in] type_ Type
 	 *  @sa Type
 	 */
 	Element(unsigned type_)
-	: type(type_)
+	: type(type_), name(), attributes(), data()
 	{ }
 
 
@@ -329,6 +328,10 @@ protected:
 
 	//! Element type
 	unsigned type;
+private:
+	//! Element name
+	std::string name;
+protected:
 	/*! @brief List of attributes.
 	 *  Unused for comment elements.
 	 */
@@ -337,9 +340,6 @@ protected:
 	 *  Unused for unary elements.
 	 */
 	string data;
-private:
-	//! Element name
-	std::string name;
 	
 };
 
@@ -348,13 +348,30 @@ private:
  * attributes and values were appendedto existing elements.
  */
 //@{
+template <typename charT, typename T>
+typename std::enable_if<std::is_base_of<Element<charT>, T>::value, T>::type
+operator + (T const& e1, T const& e2) {
+	T e(e1);
+	e += static_cast<std::basic_string<charT>>(e2);
+	return e;
+}
+
+template <typename charT, typename T>
+typename std::enable_if<std::is_base_of<Element<charT>, T>::value, T>::type
+operator + (T const& e1, T&& e2) {
+	T e(e1);
+	e += static_cast<std::basic_string<charT>>(e2);
+	return ;
+}
+
 /*! @brief Concatenate an attribute.
  *  @param[in] _e element
  *  @param[in] _a attribute
  */
-template <typename charT>
-Element<charT> operator + (const Element<charT>& _e, const typename Element<charT>::attribute& _a) {
-	Element<charT> e(_e);
+template <typename charT, typename T>
+typename std::enable_if<std::is_base_of<Element<charT>, T>::value, T>::type
+operator + (T const& _e, const typename Element<charT>::attribute& _a) {
+	T e(_e);
 	e += _a;
 	return e;
 }
@@ -363,20 +380,28 @@ Element<charT> operator + (const Element<charT>& _e, const typename Element<char
  *  @param[in] _e element
  *  @param[in] _a attribute
  */
-template <typename charT>
-Element<charT> operator + (Element<charT>&& _e, const typename Element<charT>::attribute& _a) {
-	Element<charT> e(std::move(_e));
+template <typename charT, typename T>
+typename std::enable_if<std::is_base_of<Element<charT>, T>::value, T>::type
+operator + (T&& _e, const typename Element<charT>::attribute& _a) {
+	T e(std::move(_e));
 	e += _a;
 	return std::move(e);
+}
+
+template <typename charT, typename T>
+typename std::enable_if<std::is_base_of<Element<charT>, T>::value, T>::type
+operator + (const typename Element<charT>::attribute& _a, T&& _e) {
+	return operator + (std::forward<T>(_e), _a);
 }
 
 /*! @brief Concatenate attribute(s).
  *  @param[in] _e element
  *  @param[in] _a {}-list of attributes
  */
-template <typename charT>
-Element<charT> operator + (const Element<charT>& _e, std::initializer_list<typename Element<charT>::attribute> _a) {
-	Element<charT> e(_e);
+template <typename charT, typename T>
+typename std::enable_if<std::is_base_of<Element<charT>, T>::value, T>::type
+operator + (T const& _e, std::initializer_list<typename Element<charT>::attribute> _a) {
+	T e(_e);
 	e += _a;
 	return e;
 }
@@ -385,20 +410,28 @@ Element<charT> operator + (const Element<charT>& _e, std::initializer_list<typen
  *  @param[in] _e element
  *  @param[in] _a {}-list of attributes
  */
-template <typename charT>
-Element<charT> operator + (Element<charT>&& _e, std::initializer_list<typename Element<charT>::attribute> _a) {
-	Element<charT> e(std::move(_e));
+template <typename charT, typename T>
+typename std::enable_if<std::is_base_of<Element<charT>, T>::value, T>::type
+operator + (T&& _e, std::initializer_list<typename Element<charT>::attribute> _a) {
+	T e(std::move(_e));
 	e += _a;
 	return std::move(e);
+}
+
+template <typename charT, typename T>
+typename std::enable_if<std::is_base_of<Element<charT>, T>::value, T>::type
+operator + (std::initializer_list<typename Element<charT>::attribute> _a, T&& _e) {
+	return operator + (std::forward<T>(_e), _a);
 }
 
 /*! @brief Concatenate a value.
  *  @param[in] _e element 
  *  @param[in] _v value
  */
-template <typename charT>
-Element<charT> operator + (const Element<charT>& _e, const std::basic_string<charT>& _v) {
-	Element<charT> e(_e);
+template <typename charT, typename T>
+typename std::enable_if<std::is_base_of<Element<charT>, T>::value, T>::type
+operator + (T const& _e, const std::basic_string<charT>& _v) {
+	T e(_e);
 	e += _v;
 	return e;
 }
@@ -407,20 +440,28 @@ Element<charT> operator + (const Element<charT>& _e, const std::basic_string<cha
  *  @param[in] _e element 
  *  @param[in] _v value
  */
-template <typename charT>
-Element<charT> operator + (Element<charT>&& _e, const std::basic_string<charT>& _v) {
-	Element<charT> e(std::move(_e));
+template <typename charT, typename T>
+typename std::enable_if<std::is_base_of<Element<charT>, T>::value, T>::type
+operator + (T&& _e, const std::basic_string<charT>& _v) {
+	T e(std::move(_e));
 	e += _v;
 	return std::move(e);
 }
 	
+template <typename charT, typename T>
+typename std::enable_if<std::is_base_of<Element<charT>, T>::value, T>::type
+operator + (std::basic_string<charT> const& _v, T&& _e) {
+	return operator + (std::forward<T>(_e), _v);
+}
+
 /*! @brief Concatenate value(s).
  *  @param[in] _e element
  *  @param[in] _v {}-list of values
  */
-template <typename charT>
-Element<charT> operator + (const Element<charT>& _e, std::initializer_list<std::basic_string<charT>> _v) {
-	Element<charT> e(_e);
+template <typename charT, typename T>
+typename std::enable_if<std::is_base_of<Element<charT>, T>::value, T>::type
+operator + (T const& _e, std::initializer_list<std::basic_string<charT>> _v) {
+	T e(_e);
 	e += _v;
 	return e;
 }
@@ -429,14 +470,27 @@ Element<charT> operator + (const Element<charT>& _e, std::initializer_list<std::
  *  @param[in] _e element
  *  @param[in] _v {}-list of values
  */
-template <typename charT>
-Element<charT> operator + (Element<charT>&& _e, std::initializer_list<std::basic_string<charT>> _v) {
-	Element<charT> e(std::move(_e));
+template <typename charT, typename T>
+typename std::enable_if<std::is_base_of<Element<charT>, T>::value, T>::type
+operator + (T&& _e, std::initializer_list<std::basic_string<charT>> _v) {
+	T e(std::move(_e));
 	e += _v;
 	return std::move(e);
 }
+
+template <typename charT, typename T>
+typename std::enable_if<std::is_base_of<Element<charT>, T>::value, T>::type
+operator + (std::initializer_list<std::basic_string<charT>> _v, T&& _e) {
+	return operator + (std::forward<T>(_e), _v);
+}
+
 //@}
 
+template <typename charT>
+std::basic_ostream<charT>& operator << (std::basic_ostream<charT>& os, const Element<charT>& e) {
+	os << static_cast<std::basic_string<charT>>(e);
+	return os;
+}
 
 /*! @brief HTML begin class
  * This class outputs <!DOCTYPE ...><html ...> when cast to string.
@@ -462,10 +516,8 @@ public:
 	 *  @sa doctype::HTML_revision
 	 */
 	HTML_begin(unsigned type_ = html_doctype::html_revision::xhtml_10_strict)
-	: Element<charT>(type_) 
+	: Element<charT>(type_), doctype(html_doctype::html_doctype<charT>(type_)), xml_attributes()
 	{
-		this->doctype = html_doctype::html_doctype(this->type);
-
 		if (is_xhtml()) {
 			this->attributes.insert(std::make_pair("xmlns", wide_string<charT>("http://www.w3.org/1999/xhtml")));
 		}
@@ -484,12 +536,105 @@ public:
 	//! Destructor
 	virtual ~HTML_begin() { }
 
+	// Copy over all the overloads of () from Element because it's simply too much work to do in-class
+	// type_traits magic.
+	/*! @name Clone and call
+	 * These overloads create new elements which behave as if attributes and values 
+	 * were appended to existing elements.
+	 */
+	//@{
+	/*! @brief Create a copy of @c *this.
+	 */
+	this_type operator () () const {
+		return this_type(*this);
+	}
+
+	/*! @brief Create a copy of @c *this with a given attribute.
+	 *  @param[in] _a attribute
+	 */
+	this_type operator () (const attribute& _a) const {
+		this_type e(*this);
+		e += _a;
+		return e;
+	}
+
+	/*! @brief Create a copy of @c *this with given attribute(s).
+	 *  @param[in] _a-{} list of attributes
+	 */
+	this_type operator () (std::initializer_list<attribute> _a) const {
+		this_type e(*this);
+		e += _a;
+		return e;
+	}
+	
+	/*! @brief Create a copy of @c *this with a given value.
+	 *  @param[in] _v value
+	 */
+	this_type operator () (const string& _v) const {
+		this_type e(*this);
+		e += _v;
+		return e;
+	}
+
+	/*! @brief Create a copy of @c *this with given value(s).
+	 *  @param[in] _v {}-list of values
+	 */
+	this_type operator () (std::initializer_list<string> _v) const {
+		this_type e(*this);
+		e += _v;
+		return e;
+	}
+
+	/*! @brief Create a copy of @c this with a given attribute and value.
+	 *  @param[in] _a attribute
+	 *  @param[in] _v value
+	 */
+	this_type operator () (const attribute& _a, const string& _v) const {
+		this_type e(*this);
+		e += _a;
+		e += _v;
+		return e;
+	}
+	
+	/*! @brief Create a copy of @c this with a given attribute and value(s).
+	 *  @param[in] _a attribute
+	 *  @param[in] _v {}-list of values
+	 */
+	this_type operator () (const attribute& _a, std::initializer_list<string> _v) const {
+		this_type e(*this);
+		e += _a;
+		e += _v;
+		return e;
+	}
+
+	/*! @brief Create a copy of @c this with given attribute(s) and a value.
+	 *  @param[in] _a {}-list of attributes
+	 *  @param[in] _v value
+	 */
+	this_type operator () (std::initializer_list<attribute> _a, const string& _v) const {
+		this_type e(*this);
+		e += _a;
+		e += _v;
+		return e;
+	}
+
+	/*! @brief Add attribute(s) and value(s).
+	 *  @param[in] _a {}-list of attributes
+	 *  @param[in] _v {}-list of values
+	 */
+	this_type operator () (std::initializer_list<attribute> _a, std::initializer_list<string> _v) const {
+		this_type e(*this);
+		e += _a;
+		e += _v;
+		return e;
+	}
+	//@}
 	virtual operator string () const {
 		std::basic_stringstream<charT> s;
-		if (is_xhtml(this->type)) {
+		if (is_xhtml()) {
 			s << wide_string<charT>("<?xml version=\"1\" ");
-			for (const auto& a : this->xml_attibutes) {
-				s << wide_string<charT>(a.first.substr(4) + "=\"");
+			for (const auto& a : this->xml_attributes) {
+				s << wide_string<charT>(a.first + "=\"");
 				s << a.second + wide_string<charT>("\" ");
 			}
 			s << wide_string<charT>("?>\r\n");
@@ -510,13 +655,12 @@ public:
 	}	
 protected:
 	virtual bool attribute_addition_hook(const attribute& _a) {
-		std::cerr << is_xhtml() << " (" << _a.first.c_str() << ", " << _a.second.c_str() << ")\n";
 		if (is_xhtml()) {
 			if (_a.first == "lang") { // make use of lang attribute XHTML-conforming
 				this->attributes.insert(std::make_pair("xml:lang", _a.second));
 			}
 			if (!_a.first.compare(0, 4, "xml=")) {
-				auto _i = this->xml_attributes.insert(std::make_pair(_a.first.substr(4), _a.second));
+				this->xml_attributes.insert(std::make_pair(_a.first.substr(4), _a.second));
 				return false;
 			}
 		}
@@ -527,15 +671,16 @@ protected:
 		return false;
 	}
 
+	//! Doctype
+	sgml_doctype::Doctype_declaration<charT> doctype;
+	
 	//! List of <?xml attributes.
 	attr_list xml_attributes;
 
-	//! Doctype
-	sgml_doctype::Doctype_declaration<charT> doctype;
 private:
 	bool is_xhtml() const {
 		using namespace html_doctype::html_revision;
-		return get_family(this->type) == Family::xhtml;
+		return (get_family(this->type) == static_cast<uint8_t>(Family::xhtml));
 	}
 
 };
@@ -543,14 +688,20 @@ private:
 //! This class prints </html>
 template <typename charT>
 struct HTML_end {
+
+	HTML_end() { }
+	virtual ~HTML_end() { }
+
 	virtual operator std::basic_string<charT> () const {
 		return wide_string<charT>("</html>");
 	}
-	//! String cast operator
-	operator const charT* () const {
-		return this->operator std::basic_string<charT>().c_str();
-	}
 };
+
+template <typename charT>
+std::basic_ostream<charT>& operator << (std::basic_ostream<charT>& os, const HTML_end<charT>& e) {
+	os << static_cast<std::basic_string<charT>>(e);
+	return os;
+}
 
 /*! @brief body begin class
  * This class outputs <body ...> when cast to string.
@@ -585,6 +736,48 @@ public:
 	//! Destructor
 	virtual ~Body_begin() { }
 
+	// Copy over all the overloads of () from Element because it's simply too much work to do in-class
+	// type_traits magic.
+	/*! @name Clone and call
+	 * These overloads create new elements which behave as if attributes and values 
+	 * were appended to existing elements.
+	 */
+	//@{
+	/*! @brief Create a copy of @c *this.
+	 */
+	this_type operator () () const {
+		return this_type(*this);
+	}
+
+	/*! @brief Create a copy of @c *this with a given attribute.
+	 *  @param[in] _a attribute
+	 */
+	this_type operator () (const attribute& _a) const {
+		this_type e(*this);
+		e += _a;
+		return e;
+	}
+
+	/*! @brief Create a copy of @c *this with given attribute(s).
+	 *  @param[in] _a-{} list of attributes
+	 */
+	this_type operator () (std::initializer_list<attribute> _a) const {
+		this_type e(*this);
+		e += _a;
+		return e;
+	}
+	//@}
+	/* @name Unavailable operators
+	 * These operator overloads are disabled for semantic enforcement reasons.
+	 */
+	//@{
+	this_type operator () (const string&) const = delete;
+	this_type operator () (std::initializer_list<string>) const  = delete;
+	this_type operator () (const attribute&, const string&) const = delete;
+	this_type operator () (const attribute&, std::initializer_list<string>) const = delete;
+	this_type operator () (std::initializer_list<attribute>, const string&) const = delete;
+	this_type operator () (std::initializer_list<attribute>, std::initializer_list<string>) const = delete;
+	//@}
 	virtual operator string () const {
 		std::basic_stringstream<charT> s;
 		s << wide_string<charT>("<body");
@@ -609,21 +802,20 @@ protected:
 //! This class prints </body>
 template <typename charT>
 struct Body_end {
+
+	Body_end() { }
+	virtual ~Body_end() { }
+
 	virtual operator std::basic_string<charT> () const {
 		return wide_string<charT>("</body>");
 	}
-	//! String cast operator
-	operator const charT* () const {
-		return this->operator std::basic_string<charT>().c_str();
-	}
 };
 
-#ifdef MOSH_CGI_USING_BYTE_ELEMENTS
-#include <mosh/cgi/html/element/s.hpp>
-#endif
-#ifdef MOSH_CGI_USING_WIDE_ELEMENTS
-#include <mosh/cgi/html/element/ws.hpp>
-#endif
+template <typename charT>
+std::basic_ostream<charT>& operator << (std::basic_ostream<charT>& os, const Body_end<charT>& e) {
+	os << static_cast<std::basic_string<charT>>(e);
+	return os;
+}
 
 /*! @name Attribute taggers
  */
@@ -641,6 +833,10 @@ P(std::string&& s1, std::basic_string<charT>&& s2) {
 	return std::make_pair(std::move(s1), std::move(s2));
 }
 //@}
+template <typename T, size_t N>
+std::basic_string<T> S(const T (&s)[N]) {
+	return std::basic_string<T>(s, N);
+}
 
 }
 

@@ -17,16 +17,19 @@
  *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110, USA
  */
 
-
-#ifdef MOSH_CGI_HTML_ELEMENT_HPP
-
-#ifndef MOSH_CGI_HTML_ELEMENT__WS_HPP
 #define MOSH_CGI_HTML_ELEMENT__WS_HPP
 
-//! Byte-string html elements
+#include <mosh/cgi/html/element.hpp>
+#include <mosh/cgi/bits/namespace.hpp>
+
+MOSH_CGI_BEGIN
+namespace html {
+namespace element {
+
+//! Wide-string html elements
 namespace ws {
 	//! @c wchar_t specialization of Element<T>
-	typedef Element<wchar_t> Element;
+	typedef element::Element<wchar_t> Element;
 	//! <a>
 	const Element a ("a", Type::binary);
 	//! <abbr>
@@ -260,13 +263,13 @@ namespace ws {
 	const Element comment ("!--", Type::comment);
 	
 	//! @c wchar_t specialization of Html_begin<T>
-	typedef HTML_begin<wchar_t> html_begin;
+	typedef element::HTML_begin<wchar_t> html_begin;
 	//! @c wchar_t specialization of Html_end<T>
-	typedef HTML_end<wchar_t> html_end;
+	typedef element::HTML_end<wchar_t> html_end;
 	//! @c wchar_t specialization of Body_begin<T>
-	const Body_begin<wchar_t> body_begin;
+	const element::Body_begin<wchar_t> body_begin;
 	//! @c wchar_t specialization of Body_end<T>
-	const Body_end<wchar_t> body_end;
+	const element::Body_end<wchar_t> body_end;
 
 //@{
 //! @c wchar_t specialization of P
@@ -283,6 +286,10 @@ P(std::string&& s1, std::wstring&& s2) {
 	
 }
 
-#endif
+}
+}
+
+MOSH_CGI_END
 
 #endif
+

@@ -16,15 +16,20 @@
  *  License along with this library; if not, write to the Free Software
  *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110, USA
  */
-#ifdef MOSH_CGI_HTML_ELEMENT_HPP
-
 #ifndef MOSH_CGI_HTML_ELEMENT__S_HPP
 #define MOSH_CGI_HTML_ELEMENT__S_HPP
+
+#include <mosh/cgi/html/element.hpp>
+#include <mosh/cgi/bits/namespace.hpp>
+
+MOSH_CGI_BEGIN
+namespace html {
+namespace element {
 
 //! Byte-string html elements
 namespace s {
 	//! @c char specialization of Element<T>
-	typedef Element<char> Element;
+	typedef element::Element<char> Element;
 	//! <a>
 	const Element a ("a", Type::binary);
 	//! <abbr>
@@ -258,13 +263,13 @@ namespace s {
 	const Element comment ("!--", Type::comment);
 	
 	//! @c char specialization of Html_begin<T>
-	typedef HTML_begin<char> html_begin;
+	typedef element::HTML_begin<char> html_begin;
 	//! @c char specialization of Html_end<T>
-	typedef HTML_end<char> html_end;
+	typedef element::HTML_end<char> html_end;
 	//! @c char specialization of Body_begin<T>
-	typedef Body_begin<char> body_begin;
+	typedef element::Body_begin<char> body_begin;
 	//! @c char specialization of Body_end<T>
-	typedef Body_end<char> body_end;
+	typedef element::Body_end<char> body_end;
 
 	//@{
 	//! @c char specialization of P
@@ -280,6 +285,9 @@ namespace s {
 	//@}
 }
 
-#endif
+}
+}
+
+MOSH_CGI_END
 
 #endif

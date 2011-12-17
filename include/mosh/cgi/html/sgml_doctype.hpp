@@ -147,7 +147,7 @@ public:
 
 	//! Add more SGML DTD to the internal DTD
 	this_type& operator += (const string& s) {
-		s += internal;
+		this->internal += s;
 		return *this;
 	}
 
